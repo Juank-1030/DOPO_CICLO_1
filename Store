@@ -1,0 +1,50 @@
+public class Store {
+    private int location;
+    private int tengesInitial;
+    private int tengesCurrent;
+    private String color;
+    private Rectangle square;
+    private Triangle triangle;
+
+    public Store(int location, int tenges, String color, int x, int y) {
+        this.location = location;
+        this.tengesInitial = tenges;
+        this.tengesCurrent = tenges;
+        this.color = color;
+
+        square = new Rectangle();
+        square.changeColor(color);
+        square.changeSize(70, 70);
+        square.setPosition(x + 10, y + 10); // Centrado en el cell de 90x90
+        square.makeVisible();
+
+        triangle = new Triangle();
+        triangle.changeColor("yellow");
+        triangle.changeSize(36, 36);
+        triangle.setPosition(x + 27, y + 27); // Mejor centrado dentro del cuadrado
+        triangle.makeVisible();
+    }
+
+    public void resupply() {
+        this.tengesCurrent = tengesInitial;
+    }
+
+    public void setVisible(boolean visible) {
+        if (visible) {
+            square.makeVisible();
+            triangle.makeVisible();
+        } else {
+            square.makeInvisible();
+            triangle.makeInvisible();
+        }
+    }
+
+    public void moveTo(int x, int y) {
+        square.setPosition(x + 10, y + 10);
+        triangle.setPosition(x + 27, y + 27);
+    }
+
+    public int getLocation() { return location; }
+    public int getTenges() { return tengesCurrent; }
+    public void setTenges(int tenges) { this.tengesCurrent = tenges; }
+}
