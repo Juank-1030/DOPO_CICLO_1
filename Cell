@@ -1,174 +1,86 @@
-/**
- * La clase {@code Cell} representa una celda dentro del tablero del juego de canicas.
- * Cada celda puede contener:
- * <ul>
- *   <li>Un color base (usado si es un agujero).</li>
- *   <li>Un agujero donde puede caer una canica.</li>
- *   <li>Una canica (de un color específico), si la celda no está vacía.</li>
- * </ul>
- * Además, la celda incluye elementos gráficos (rectángulos y círculos) que permiten
- * representarla visualmente dentro de la interfaz del juego.
- *
- * <p>Funciones principales:</p>
- * <ul>
- *   <li>Mantener el estado lógico (color, agujero, canica).</li>
- *   <li>Dibujar y mover la celda y sus componentes gráficos.</li>
- *   <li>Gestionar entrada y salida de canicas.</li>
- *   <li>Verificar si la celda está en un estado correcto (según el color esperado).</li>
- * </ul>
- */
 public class Cell {
-    private String color;          // Color de la celda
-    private boolean hole;          // Indica si hay agujero
-    private String marbleColor;    // Color de la canica (null si no hay)
+    private String color;              // Color de la celda
+    private boolean hasRobot;          // Indica si la celda tiene un robot
+    private boolean hasStore;          // Indica si la celda tiene una tienda
 
     private int positionX;     
     private int positionY;     
 
     private Rectangle background; 
     private Rectangle cell;       
-    private Circle holeShape;
-    private Circle marbleShape;
 
     /**
      * Construye una celda en el tablero.
      *
-     * @param color color esperado de la canica (si la celda es un agujero).
-     * @param hole  {@code true} si la celda contiene un agujero, {@code false} en caso contrario.
-     *              Si no es agujero, el color se fuerza siempre a blanco.
+     * @param color color de la celda.
      */
-    public Cell(String color, boolean hole) {
+    public Cell() {
         this.color = color;
-        this.hole = hole;
-        this.marbleColor = null; // Por defecto, sin canica
+        this.hasRobot = false;
+        this.hasStore = false;
 
         this.positionX = 0; 
         this.positionY = 0;
-        
 
-        // 1️⃣ Fondo
         background = new Rectangle();
         background.changeColor("black");
         background.changeSize(50, 50);
         background.setPosition(positionX, positionY);
         background.makeVisible();
-        
-        // 🔹 Si no hay hueco, el color de la celda será blanco SIEMPRE
-        if (hole == false) {
-            this.color = "white";
-        } else {
-            this.color = color; // el color de la canica correcta
-        }
-
-        // 2️⃣ Celda
+    
         cell = new Rectangle();
-        cell.changeColor(hole ? this.color : "white");
+        cell.changeColor("desertsand");
         cell.changeSize(40, 40);
         cell.setPosition(5, 5);
         cell.makeVisible();
-
-        // 3️⃣ Agujero (si aplica)
-        if (hole) {
-            holeShape = new Circle();
-            holeShape.changeColor("white");
-            holeShape.changeSize(30);
-            holeShape.setPosition(10, 10);
-            holeShape.makeVisible();
-        }
-    }
-    
-    /**
-     * Verifica si la celda contiene un agujero.
-     *
-     * @return {@code true} si la celda es un agujero, {@code false} en caso contrario.
-     */
-    public boolean hasHole() {
-        return hole;
-    }
-    
-    /**
-     * Inserta una canica en la celda.
-     * Si ya había una, se sobrescribe.
-     *
-     * @param marbleColor color de la canica que entra.
-     */
-    public void in(String marbleColor) {
-        this.marbleColor = marbleColor;
-
-        // Dibujar la canica
-        if (marbleShape == null) {
-            marbleShape = new Circle();
-            marbleShape.changeSize(20);
-            marbleShape.setPosition(positionX + 15, positionY + 15);
-        }
-        marbleShape.changeColor(marbleColor);
-        marbleShape.makeVisible();
-    }
-    
-    /**
-     * Obtiene el color de la canica en la celda.
-     *
-     * @return color de la canica, o {@code null} si la celda está vacía.
-     */
-    public String getMarbleColor() {
-        return this.marbleColor;
     }
 
     /**
-     * Extrae la canica de la celda (si no hay agujero).
-     *
-     * @return el color de la canica extraída, 
-     *         o cadena vacía si no había canica o la celda es un agujero.
+     * Coloca un robot en la celda.
      */
-    public String out() {
-        if (this.marbleColor != null) {
-            if (!hole) { 
-                String color = this.marbleColor;
-                this.marbleColor = null;
-                if (marbleShape != null) marbleShape.makeInvisible();
-                return color;
-            } else {
-                // Si hay agujero, la canica queda atrapada
-                return "";
-            }
-        }
-        return ""; // No había canica
+    public void placeRobot() {
+        this.hasRobot = true;
     }
-    
+
     /**
-     * Verifica si la celda está en estado correcto:
-     * <ul>
-     *   <li>Si no hay agujero → siempre correcto.</li>
-     *   <li>Si hay agujero vacío → correcto.</li>
-     *   <li>Si hay agujero con canica → correcto solo si el color coincide.</li>
-     * </ul>
-     *
-     * @return {@code true} si la celda está correcta, {@code false} en caso contrario.
+     * Elimina el robot de la celda.
      */
-    public boolean isOK() {
-        if (!hole) {
-            // ✅ No hay agujero → siempre correcto
-            return true;
-        }
-    
-        if (marbleColor == null) {
-            // ✅ Agujero vacío → correcto
-            return true;
-        }
-    
-        // ⚠️ Agujero ocupado → verificamos color
-        return marbleColor.equals(color);
+    public void removeRobot() {
+        this.hasRobot = false;
     }
-    
+
     /**
-     * Indica si la celda contiene actualmente una canica.
-     *
-     * @return {@code true} si hay canica, {@code false} en caso contrario.
+     * Coloca una tienda en la celda.
      */
-    public boolean hasMarble() {
-        return marbleColor != null;
+    public void placeStore() {
+        this.hasStore = true;
     }
-    
+
+    /**
+     * Elimina la tienda de la celda.
+     */
+    public void removeStore() {
+        this.hasStore = false;
+    }
+
+    /**
+     * Verifica si la celda contiene un robot.
+     *
+     * @return {@code true} si hay un robot, {@code false} en caso contrario.
+     */
+    public boolean hasRobot() {
+        return hasRobot;
+    }
+
+    /**
+     * Verifica si la celda contiene una tienda.
+     *
+     * @return {@code true} si hay una tienda, {@code false} en caso contrario.
+     */
+    public boolean hasStore() {
+        return hasStore;
+    }
+
     /**
      * Mueve la celda (y todos sus elementos gráficos) en una dirección dada.
      *
@@ -199,48 +111,22 @@ public class Cell {
     
         cell.moveHorizontal(dx);
         cell.moveVertical(dy);
-    
-        if (holeShape != null) {
-            holeShape.moveHorizontal(dx);
-            holeShape.moveVertical(dy);
-        }
-    
-        if (marbleShape != null) {
-            marbleShape.moveHorizontal(dx);
-            marbleShape.moveVertical(dy);
-        }
     }
     
     /**
-     * Hace visible gráficamente la celda (fondo, celda, agujero y canica si existen).
+     * Hace visible gráficamente la celda (fondo, celda, y cualquier objeto si existe).
      */
     public void makeVisible() {
         background.makeVisible();
         cell.makeVisible();
-        
-        if (holeShape != null) {
-            holeShape.makeVisible();
-        }
-        
-        if (marbleShape != null) {
-            marbleShape.makeVisible();
-        }
     }
 
     /**
-     * Hace invisible gráficamente la celda (fondo, celda, agujero y canica si existen).
+     * Hace invisible gráficamente la celda (fondo, celda, y cualquier objeto si existe).
      */
     public void makeInvisible() {
         background.makeInvisible();
         cell.makeInvisible();
-        
-        if (holeShape != null) {
-            holeShape.makeInvisible();
-        }
-        
-        if (marbleShape != null) {
-            marbleShape.makeInvisible();
-        }
     }
     
     /**
@@ -248,7 +134,7 @@ public class Cell {
      *
      * @return posición X en el tablero.
      */
-     public int getPositionX() {
+    public int getPositionX() {
         return positionX;
     }
     
@@ -262,7 +148,7 @@ public class Cell {
     }
     
     /**
-     * Devuelve el color esperado de la celda (usado si es agujero).
+     * Devuelve el color de la celda.
      *
      * @return color asociado a la celda.
      */
@@ -290,16 +176,5 @@ public class Cell {
 
         cell.moveHorizontal(dx);
         cell.moveVertical(dy);
-
-        if (holeShape != null) {
-            holeShape.moveHorizontal(dx);
-            holeShape.moveVertical(dy);
-        }
-
-        if (marbleShape != null) {
-            marbleShape.moveHorizontal(dx);
-            marbleShape.moveVertical(dy);
-        }
     }
-
 }
