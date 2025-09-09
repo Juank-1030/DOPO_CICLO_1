@@ -1,5 +1,4 @@
 import java.awt.*;
-
 /**
  * A triangle that can be manipulated and that draws itself on a canvas.
  * 
@@ -177,5 +176,12 @@ public class Triangle{
             Canvas canvas = Canvas.getCanvas();
             canvas.erase(this);
         }
+    }
+    
+    public void setPosition(int x, int y) {
+        erase();
+        this.xPosition = x;
+        this.yPosition = y;
+        draw();
     }
 }
