@@ -1,36 +1,109 @@
-public class Road {
-    private SilkRoad silkRoad;     // Referencia a la clase SilkRoad
-    private Cell[] roadCells;      // Array de celdas (representa el camino)
+import java.util.*;
+public class Robot {
+    private String color;              // Color del robot
+    private int positionX;             // Posición X
+    private int positionY;             // Posición Y
+    private int size;                  // Tamaño del robot (por ejemplo, 20x20)
+    private Rectangle robotHead;       // Cabeza del robot (cuadrado)
+    private Circle leftEye;            // Ojo izquierdo
+    private Circle rightEye;           // Ojo derecho
+    private Rectangle mouth;           // Boca del robot (rectángulo)
 
-    public Road(SilkRoad silkRoad) {
-        this.silkRoad = silkRoad;  // Recibimos la instancia de SilkRoad
-        this.roadCells = new Cell[silkRoad.getLength()];  // Creamos un array de celdas
+    public Robot() {
+        this.size = 15;
+        this.positionX = 6; 
+        this.positionY = 28;
+        this.color = getRandomColor();
+
+        // Asignar color de ojos y boca según el color del robot
+        String eyeAndMouthColor = (color.equals("black") || color.equals("brown")) ? "white" : "black";
+
+        // Llamamos al método para dibujar el robot con los datos obtenidos
+        drawRobot(eyeAndMouthColor);
     }
 
-    // Método para generar el camino visualmente
-    public void generateRoad() {
-        int positionX = 0;  // Posición inicial X
-        int positionY = 0;  // Posición inicial Y
+    /**
+     * Método para generar un color aleatorio para el robot.
+     * @return Color aleatorio en formato String.
+     */
+    private String getRandomColor() {
+        // Lista de colores posibles
+        String[] colors = {"red", "blue", "green", "yellow", "magenta", "cyan", "black", "brown", "purple", "orange"};
+        Random rand = new Random();
 
-        // Usamos las celdas de SilkRoad para crear el camino
-        for (int i = 0; i < silkRoad.getLength(); i++) {
-            // Instanciamos las celdas y les asignamos posiciones
-            roadCells[i] = new Cell();
-            roadCells[i].setPosition(positionX, positionY);
-
-            // Verificamos si la celda debe tener un robot o una tienda
-            if (silkRoad.getRobots()[i][0] != 0) {
-                roadCells[i].placeRobot();  // Si la matriz tiene un robot, lo colocamos
-            }
-            if (silkRoad.getStores()[i][0] != 0) {
-                roadCells[i].placeStore();  // Si la matriz tiene una tienda, la colocamos
-            }
-
-            // Hacemos visible la celda
-            roadCells[i].makeVisible();
-            
-            // Desplazamos la posición para la siguiente celda
-            positionX += 45;  // Aumentamos la posición X para la siguiente celda
-        }
+        // Seleccionar un color aleatorio de la lista
+        return colors[rand.nextInt(colors.length)];
     }
+
+    /**
+     * Método para dibujar el robot con las características especificadas.
+     * @param eyeAndMouthColor color para los ojos y la boca (puede ser blanco o negro)
+     */
+    private void drawRobot(String eyeAndMouthColor) {
+        // Dibujar la cabeza del robot (un cuadrado)
+        robotHead = new Rectangle();
+        robotHead.changeColor(color); // Usar el color del robot
+        robotHead.changeSize(size, size);  // Tamaño de la cabeza
+        robotHead.setPosition(positionX, positionY); // Posición de la cabeza
+        robotHead.makeVisible();
+
+        // Ojos del robot (círculos)
+        int eyeSize = size / 6;
+        leftEye = new Circle();
+        leftEye.changeColor(eyeAndMouthColor);  // Ojo izquierdo
+        leftEye.changeSize(eyeSize);
+        leftEye.setPosition(positionX + size - 14, positionY + size / 4);  // Posición del ojo izquierdo
+        leftEye.makeVisible();
+
+        rightEye = new Circle();
+        rightEye.changeColor(eyeAndMouthColor); // Ojo derecho
+        rightEye.changeSize(eyeSize);
+        rightEye.setPosition(positionX + size - 4, positionY + size / 4);  // Posición del ojo derecho
+        rightEye.makeVisible();
+
+        // Boca del robot (rectángulo)
+        mouth = new Rectangle();
+        mouth.changeColor(eyeAndMouthColor);  // Boca de color blanco o negro
+        mouth.changeSize(1, 10);  // Tamaño de la boca proporcional a la cabeza
+        mouth.setPosition(positionX + size / 6, positionY + size - (size / 10)-1);  // Posición de la boca en la parte inferior
+        mouth.makeVisible();
+    }
+
+    /**
+     * Mueve el robot a una nueva posición.
+     * @param deltaX desplazamiento en el eje X
+     * @param deltaY desplazamiento en el eje Y
+     */
+    public void move(int deltaX, int deltaY) {
+        positionX += deltaX;
+        positionY += deltaY;
+
+        // Mover la cabeza, los ojos y la boca
+        robotHead.setPosition(positionX, positionY);
+        leftEye.setPosition(positionX + size / 4, positionY + size / 4);
+        rightEye.setPosition(positionX + size / 2, positionY + size / 4);
+        mouth.setPosition(positionX + size / 4, positionY + size - size / 8);
+    }
+
+    /**
+     * Hace que el robot sea visible.
+     */
+    public void makeVisible() {
+        robotHead.makeVisible();
+        leftEye.makeVisible();
+        rightEye.makeVisible();
+        mouth.makeVisible();
+    }
+
+    /**
+     * Hace que el robot sea invisible.
+     */
+    public void makeInvisible() {
+        robotHead.makeInvisible();
+        leftEye.makeInvisible();
+        rightEye.makeInvisible();
+        mouth.makeInvisible();
+    }
+
+    // Métodos adicionales según sea necesario...
 }
