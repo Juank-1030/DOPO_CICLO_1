@@ -1,36 +1,83 @@
-public class Road {
-    private SilkRoad silkRoad;     // Referencia a la clase SilkRoad
-    private Cell[] roadCells;      // Array de celdas (representa el camino)
+import java.util.Random;  // Para generar colores aleatorios
 
-    public Road(SilkRoad silkRoad) {
-        this.silkRoad = silkRoad;  // Recibimos la instancia de SilkRoad
-        this.roadCells = new Cell[silkRoad.getLength()];  // Creamos un array de celdas
+public class Store {
+    private int positionX;        // Posición X de la tienda
+    private int positionY;        // Posición Y de la tienda
+    private int sizeRectangle;    // Tamaño de la tienda (ancho)
+    private int sizeTriangle;     // Tamaño del techo de la tienda (alto)
+    private String color;         // Color aleatorio de la tienda
+
+    private Rectangle base;       // Base de la tienda (rectángulo)
+    private Triangle roof;        // Techo de la tienda (triángulo)
+
+    /**
+     * Constructor para crear la tienda con la posición y tamaño dados.
+     * @param positionX posición X en el lienzo
+     * @param positionY posición Y en el lienzo
+     * @param size tamaño de la tienda
+     */
+    public Store() {
+        this.positionX = 24;
+        this.positionY = 15;
+        this.sizeRectangle = 20;
+        this.sizeTriangle = 20;
+        this.color = getRandomColor();  // Asignamos un color aleatorio
+
+        // Crear la base de la tienda (rectángulo)
+        base = new Rectangle();
+        base.changeColor(color); // Usar el color aleatorio
+        base.changeSize(sizeRectangle / 2, sizeRectangle);  // La base será el doble de ancha que alta
+        base.setPosition(positionX, positionY);
+        base.makeVisible();
+
+        // Crear el techo de la tienda (triángulo)
+        roof = new Triangle();
+        roof.changeColor("brown");  // El color del techo será siempre café
+        roof.changeSize(sizeTriangle / 2, sizeTriangle);  // El techo será un triángulo equilátero
+        roof.setPosition(positionX + 10, positionY - sizeTriangle / 2);  // Colocarlo sobre la base
+        roof.makeVisible();
     }
 
-    // Método para generar el camino visualmente
-    public void generateRoad() {
-        int positionX = 0;  // Posición inicial X
-        int positionY = 0;  // Posición inicial Y
+    /**
+     * Método para generar un color aleatorio para la tienda.
+     * @return Color aleatorio en formato String.
+     */
+    private String getRandomColor() {
+        // Lista de colores posibles (sin café)
+        String[] colors = {"red", "blue", "green", "yellow", "magenta", "cyan", "purple", "orange"};
+        Random rand = new Random();
 
-        // Usamos las celdas de SilkRoad para crear el camino
-        for (int i = 0; i < silkRoad.getLength(); i++) {
-            // Instanciamos las celdas y les asignamos posiciones
-            roadCells[i] = new Cell();
-            roadCells[i].setPosition(positionX, positionY);
+        // Seleccionar un color aleatorio de la lista
+        return colors[rand.nextInt(colors.length)];
+    }
 
-            // Verificamos si la celda debe tener un robot o una tienda
-            if (silkRoad.getRobots()[i][0] != 0) {
-                roadCells[i].placeRobot();  // Si la matriz tiene un robot, lo colocamos
-            }
-            if (silkRoad.getStores()[i][0] != 0) {
-                roadCells[i].placeStore();  // Si la matriz tiene una tienda, la colocamos
-            }
+    /**
+     * Mueve la tienda a una nueva posición.
+     * @param newX nueva posición X para la tienda
+     * @param newY nueva posición Y para la tienda
+     */
+    public void moveTo(int newX, int newY) {
+        positionX = newX;  // Actualizar la posición X de la tienda
+        positionY = newY;  // Actualizar la posición Y de la tienda
 
-            // Hacemos visible la celda
-            roadCells[i].makeVisible();
-            
-            // Desplazamos la posición para la siguiente celda
-            positionX += 45;  // Aumentamos la posición X para la siguiente celda
-        }
+        // Mover las partes de la tienda a las nuevas posiciones
+        base.setPosition(positionX, positionY);  // Mover la base de la tienda
+        roof.setPosition(positionX + 10, positionY - sizeTriangle / 2);  // Mover el techo de la tienda
+    }
+
+    /**
+     * Hace que la tienda sea visible.
+     */
+    public void makeVisible() {
+        base.makeVisible();
+        roof.makeVisible();
+    }
+
+    /**
+     * Hace que la tienda sea invisible.
+     */
+    public void makeInvisible() {
+        base.makeInvisible();
+        roof.makeInvisible();
     }
 }
