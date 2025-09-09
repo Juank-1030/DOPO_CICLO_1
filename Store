@@ -1,50 +1,83 @@
+import java.util.Random;  // Para generar colores aleatorios
+
 public class Store {
-    private int location;
-    private int tengesInitial;
-    private int tengesCurrent;
-    private String color;
-    private Rectangle square;
-    private Triangle triangle;
+    private int positionX;        // Posición X de la tienda
+    private int positionY;        // Posición Y de la tienda
+    private int sizeRectangle;    // Tamaño de la tienda (ancho)
+    private int sizeTriangle;     // Tamaño del techo de la tienda (alto)
+    private String color;         // Color aleatorio de la tienda
 
-    public Store(int location, int tenges, String color, int x, int y) {
-        this.location = location;
-        this.tengesInitial = tenges;
-        this.tengesCurrent = tenges;
-        this.color = color;
+    private Rectangle base;       // Base de la tienda (rectángulo)
+    private Triangle roof;        // Techo de la tienda (triángulo)
 
-        square = new Rectangle();
-        square.changeColor(color);
-        square.changeSize(70, 70);
-        square.setPosition(x + 10, y + 10); // Centrado en el cell de 90x90
-        square.makeVisible();
+    /**
+     * Constructor para crear la tienda con la posición y tamaño dados.
+     * @param positionX posición X en el lienzo
+     * @param positionY posición Y en el lienzo
+     * @param size tamaño de la tienda
+     */
+    public Store() {
+        this.positionX = 24;
+        this.positionY = 15;
+        this.sizeRectangle = 20;
+        this.sizeTriangle = 20;
+        this.color = getRandomColor();  // Asignamos un color aleatorio
 
-        triangle = new Triangle();
-        triangle.changeColor("yellow");
-        triangle.changeSize(36, 36);
-        triangle.setPosition(x + 27, y + 27); // Mejor centrado dentro del cuadrado
-        triangle.makeVisible();
+        // Crear la base de la tienda (rectángulo)
+        base = new Rectangle();
+        base.changeColor(color); // Usar el color aleatorio
+        base.changeSize(sizeRectangle / 2, sizeRectangle);  // La base será el doble de ancha que alta
+        base.setPosition(positionX, positionY);
+        base.makeVisible();
+
+        // Crear el techo de la tienda (triángulo)
+        roof = new Triangle();
+        roof.changeColor("brown");  // El color del techo será siempre café
+        roof.changeSize(sizeTriangle / 2, sizeTriangle);  // El techo será un triángulo equilátero
+        roof.setPosition(positionX + 10, positionY - sizeTriangle / 2);  // Colocarlo sobre la base
+        roof.makeVisible();
     }
 
-    public void resupply() {
-        this.tengesCurrent = tengesInitial;
+    /**
+     * Método para generar un color aleatorio para la tienda.
+     * @return Color aleatorio en formato String.
+     */
+    private String getRandomColor() {
+        // Lista de colores posibles (sin café)
+        String[] colors = {"red", "blue", "green", "yellow", "magenta", "cyan", "purple", "orange"};
+        Random rand = new Random();
+
+        // Seleccionar un color aleatorio de la lista
+        return colors[rand.nextInt(colors.length)];
     }
 
-    public void setVisible(boolean visible) {
-        if (visible) {
-            square.makeVisible();
-            triangle.makeVisible();
-        } else {
-            square.makeInvisible();
-            triangle.makeInvisible();
-        }
+    /**
+     * Mueve la tienda a una nueva posición.
+     * @param newX nueva posición X para la tienda
+     * @param newY nueva posición Y para la tienda
+     */
+    public void moveTo(int newX, int newY) {
+        positionX = newX;  // Actualizar la posición X de la tienda
+        positionY = newY;  // Actualizar la posición Y de la tienda
+
+        // Mover las partes de la tienda a las nuevas posiciones
+        base.setPosition(positionX, positionY);  // Mover la base de la tienda
+        roof.setPosition(positionX + 10, positionY - sizeTriangle / 2);  // Mover el techo de la tienda
     }
 
-    public void moveTo(int x, int y) {
-        square.setPosition(x + 10, y + 10);
-        triangle.setPosition(x + 27, y + 27);
+    /**
+     * Hace que la tienda sea visible.
+     */
+    public void makeVisible() {
+        base.makeVisible();
+        roof.makeVisible();
     }
 
-    public int getLocation() { return location; }
-    public int getTenges() { return tengesCurrent; }
-    public void setTenges(int tenges) { this.tengesCurrent = tenges; }
+    /**
+     * Hace que la tienda sea invisible.
+     */
+    public void makeInvisible() {
+        base.makeInvisible();
+        roof.makeInvisible();
+    }
 }
