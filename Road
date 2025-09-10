@@ -6,11 +6,9 @@ public class Road {
     private int[] storesInitTenges;
     private int length;
     private int cellSize = 50; // Tamaño fijo de la celda
-    private SilkRoad silkRoad;
 
-    public Road(int length, SilkRoad silkRoad) {
+    public Road(int length) {
         this.length = length;
-        this.silkRoad = silkRoad;
         roadCells = new Cell[length];
         stores = new Store[length];
         robots = new Robot[length];
