@@ -8,7 +8,7 @@ public class SilkRoad {
         this.length = length;
         this.profit = 0;
         this.lastOperationOK = true;
-        road = new Road(length, this);
+        road = new Road(length); // Solo pasa el length, NO referencia a SilkRoad
     }
 
     public void placeStore(int location, int tenges) {
