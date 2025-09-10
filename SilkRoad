@@ -1,33 +1,34 @@
-import java.util.*;
-
-public class SilkRoad {
-    private int length;
-    private Cell[] cells;
+public class Road {
+    private Cell[] roadCells;
     private Store[] stores;
     private Robot[] robots;
     private int[] robotsInitLocation;
     private int[] storesInitTenges;
-    private int profit;
-    private boolean lastOperationOK;
-    private int cellSize = 50; // Ajusta al tamaño de tu celda
+    private int length;
+    private int cellSize = 50; // Tamaño fijo de la celda
+    private SilkRoad silkRoad;
 
-    public SilkRoad(int length) {
+    public Road(int length, SilkRoad silkRoad) {
         this.length = length;
-        this.cells = new Cell[length];
-        this.stores = new Store[length];
-        this.robots = new Robot[length];
-        this.robotsInitLocation = new int[length];
-        this.storesInitTenges = new int[length];
-        this.profit = 0;
-        this.lastOperationOK = true;
+        this.silkRoad = silkRoad;
+        roadCells = new Cell[length];
+        stores = new Store[length];
+        robots = new Robot[length];
+        robotsInitLocation = new int[length];
+        storesInitTenges = new int[length];
+        crearCeldasFila();
+    }
 
-        int cellSize = this.cellSize;
-        int startX = 0;
-        int startY = 0;
+    // Dibuja todas las celdas en una sola fila, empezando en la esquina superior izquierda
+    private void crearCeldasFila() {
+        int startX = 0; // esquina izquierda
+        int startY = 0; // esquina arriba
         for (int i = 0; i < length; i++) {
-            cells[i] = new Cell();
-            cells[i].setPosition(startX + i * cellSize, startY);
-            cells[i].makeVisible();
+            int x = startX + i * cellSize;
+            int y = startY;
+            roadCells[i] = new Cell();
+            roadCells[i].setPosition(x, y);
+            roadCells[i].makeVisible();
             stores[i] = null;
             robots[i] = null;
             robotsInitLocation[i] = -1;
@@ -35,187 +36,156 @@ public class SilkRoad {
         }
     }
 
-    // Coloca la tienda en la esquina superior derecha de la celda
-    public void placeStore(int location, int tenges) {
-        if (location < 0 || location >= length || stores[location] != null) {
-            lastOperationOK = false;
-            return;
-        }
-        int cellX = cells[location].getPositionX();
-        int cellY = cells[location].getPositionY();
-        int anchoStore = 20;
-        int altoStore = 20;
-        int margen = 2;
-        int storeX = cellX + cellSize - anchoStore - margen;
-        int storeY = cellY + margen;
+    public boolean placeStore(int location, int tenges) {
+        if (location < 0 || location >= length || stores[location] != null) return false;
         Store store = new Store();
-        store.moveTo(storeX, storeY);
+        int cellX = roadCells[location].getPositionX();
+        int cellY = roadCells[location].getPositionY();
+        store.moveTo(cellX + 28, cellY + 2); // esquina superior derecha de la celda
         store.makeVisible();
         stores[location] = store;
         storesInitTenges[location] = tenges;
-        lastOperationOK = true;
+        roadCells[location].placeStore();
+        return true;
     }
 
-    public void removeStore(int location) {
-        if (location < 0 || location >= length || stores[location] == null) {
-            lastOperationOK = false;
-            return;
-        }
+    public boolean removeStore(int location) {
+        if (location < 0 || location >= length || stores[location] == null) return false;
         stores[location].makeInvisible();
         stores[location] = null;
         storesInitTenges[location] = 0;
-        lastOperationOK = true;
+        roadCells[location].removeStore();
+        return true;
     }
 
-    // Coloca el robot en la esquina inferior izquierda de la celda
-    public void placeRobot(int location) {
-        if (location < 0 || location >= length) {
-            lastOperationOK = false;
-            return;
-        }
-        if (robots[location] != null) {
-            lastOperationOK = false;
-            return;
-        }
-        int cellX = cells[location].getPositionX();
-        int cellY = cells[location].getPositionY();
-        int altoRobot = 15;
-        int margen = 2;
-        int robotX = cellX + margen;
-        int robotY = cellY + cellSize - altoRobot - margen;
+    public boolean placeRobot(int location) {
+        if (location < 0 || location >= length || robots[location] != null) return false;
         Robot robot = new Robot();
-        robot.move(robotX - robot.getX(), robotY - robot.getY());
+        int cellX = roadCells[location].getPositionX();
+        int cellY = roadCells[location].getPositionY();
+        robot.move(cellX + 2 - robot.getX(), cellY + 33 - robot.getY()); // esquina inferior izquierda
         robot.makeVisible();
         robots[location] = robot;
         robotsInitLocation[location] = location;
-        lastOperationOK = true;
+        roadCells[location].placeRobot();
+        return true;
     }
 
-    public void removeRobot(int location) {
-        if (location < 0 || location >= length || robots[location] == null) {
-            lastOperationOK = false;
-            return;
-        }
+    public boolean removeRobot(int location) {
+        if (location < 0 || location >= length || robots[location] == null) return false;
         robots[location].makeInvisible();
         robots[location] = null;
         robotsInitLocation[location] = -1;
-        lastOperationOK = true;
+        roadCells[location].removeRobot();
+        return true;
     }
 
-    public void moveRobot(int location, int meters) {
-        if (location < 0 || location >= length || robots[location] == null) {
-            lastOperationOK = false;
-            return;
-        }
+    public boolean moveRobot(int location, int meters) {
+        if (location < 0 || location >= length || robots[location] == null) return false;
         int target = location + meters;
-        if (target < 0 || target >= length || robots[target] != null) {
-            lastOperationOK = false;
-            return;
-        }
-        int cellX = cells[target].getPositionX();
-        int cellY = cells[target].getPositionY();
-        int altoRobot = 15;
-        int margen = 2;
-        int robotX = cellX + margen;
-        int robotY = cellY + cellSize - altoRobot - margen;
-
-        robots[target] = robots[location];
-        robots[target].move(robotX - robots[target].getX(), robotY - robots[target].getY());
+        if (target < 0 || target >= length || robots[target] != null) return false;
+        Robot robot = robots[location];
+        int cellX = roadCells[target].getPositionX();
+        int cellY = roadCells[target].getPositionY();
+        robot.move(cellX + 2 - robot.getX(), cellY + 33 - robot.getY());
+        robots[target] = robot;
         robots[location] = null;
         robotsInitLocation[target] = robotsInitLocation[location];
         robotsInitLocation[location] = -1;
-        lastOperationOK = true;
+        roadCells[target].placeRobot();
+        roadCells[location].removeRobot();
+        return true;
     }
 
-    public void resupplyStores() {
-        // Si Store tiene método para reabastecer, úsalo aquí
-        lastOperationOK = true;
+    public boolean resupplyStores() {
+        return true;
     }
 
-    public void returnRobots() {
+    public boolean returnRobots() {
         for (int i = 0; i < length; i++) {
             if (robots[i] != null && robotsInitLocation[i] != -1 && robotsInitLocation[i] != i) {
                 int initLoc = robotsInitLocation[i];
                 if (robots[initLoc] == null) {
-                    int cellX = cells[initLoc].getPositionX();
-                    int cellY = cells[initLoc].getPositionY();
-                    int altoRobot = 15;
-                    int margen = 2;
-                    int robotX = cellX + margen;
-                    int robotY = cellY + cellSize - altoRobot - margen;
-                    robots[initLoc] = robots[i];
-                    robots[initLoc].move(robotX - robots[initLoc].getX(), robotY - robots[initLoc].getY());
+                    Robot robot = robots[i];
+                    int cellX = roadCells[initLoc].getPositionX();
+                    int cellY = roadCells[initLoc].getPositionY();
+                    robot.move(cellX + 2 - robot.getX(), cellY + 33 - robot.getY());
+                    robots[initLoc] = robot;
                     robots[i] = null;
                     robotsInitLocation[initLoc] = initLoc;
                     robotsInitLocation[i] = -1;
+                    roadCells[initLoc].placeRobot();
+                    roadCells[i].removeRobot();
                 }
             }
         }
-        lastOperationOK = true;
+        return true;
     }
 
-    public void reboot() {
+    public boolean reboot() {
         for (int i = 0; i < length; i++) {
             if (stores[i] != null) {
                 stores[i].makeInvisible();
                 stores[i] = null;
                 storesInitTenges[i] = 0;
+                roadCells[i].removeStore();
             }
             if (robots[i] != null) {
                 robots[i].makeInvisible();
                 robots[i] = null;
                 robotsInitLocation[i] = -1;
+                roadCells[i].removeRobot();
             }
         }
-        profit = 0;
-        lastOperationOK = true;
-    }
-
-    public int porfit() {
-        return profit;
+        return true;
     }
 
     public int[][] stores() {
-        ArrayList<int[]> result = new ArrayList<>();
+        int count = 0;
+        for (int i = 0; i < length; i++) if (stores[i] != null) count++;
+        int[][] result = new int[count][2];
+        int idx = 0;
         for (int i = 0; i < length; i++) {
             if (stores[i] != null) {
-                result.add(new int[]{i, storesInitTenges[i]});
+                result[idx][0] = i;
+                result[idx][1] = storesInitTenges[i];
+                idx++;
             }
         }
-        return result.toArray(new int[result.size()][]);
+        return result;
     }
 
     public int[][] robots() {
-        ArrayList<int[]> result = new ArrayList<>();
+        int count = 0;
+        for (int i = 0; i < length; i++) if (robots[i] != null) count++;
+        int[][] result = new int[count][1];
+        int idx = 0;
         for (int i = 0; i < length; i++) {
             if (robots[i] != null) {
-                result.add(new int[]{i});
+                result[idx][0] = i;
+                idx++;
             }
         }
-        return result.toArray(new int[result.size()][]);
+        return result;
     }
 
     public void makeVisible() {
+        for (int i = 0; i < length; i++) roadCells[i].makeVisible();
         for (int i = 0; i < length; i++) {
-            cells[i].makeVisible();
             if (stores[i] != null) stores[i].makeVisible();
             if (robots[i] != null) robots[i].makeVisible();
         }
     }
 
     public void makeInvisible() {
+        for (int i = 0; i < length; i++) roadCells[i].makeInvisible();
         for (int i = 0; i < length; i++) {
-            cells[i].makeInvisible();
             if (stores[i] != null) stores[i].makeInvisible();
             if (robots[i] != null) robots[i].makeInvisible();
         }
     }
 
     public void finish() {
-        // Si necesitas lógica extra para terminar la simulación, ponla aquí
-    }
-
-    public boolean ok() {
-        return lastOperationOK;
+        // Si necesitas lógica de cierre, ponla aquí
     }
 }
