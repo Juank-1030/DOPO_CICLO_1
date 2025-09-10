@@ -30,7 +30,6 @@ public class Canvas{
             int screenWidth = screenSize.width;
             int screenHeight = screenSize.height;
 
-            
             int screenW = screenWidth;
             int screenH = screenHeight;
 
@@ -39,22 +38,6 @@ public class Canvas{
 
         canvasSingleton.setVisible(true);
         return canvasSingleton;
-    }
-    
-    public int getSizeCanvasW(){
-        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-        int screenWidth = screenSize.width;
-        
-        return screenWidth;
-        
-    }
-    
-    public int getSizeCanvasH(){
-        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-        int screenHeight = screenSize.height;
-        
-        return screenHeight;
-        
     }
 
     //  ----- instance part -----
@@ -113,9 +96,6 @@ public class Canvas{
      * @param  color            the color of the shape
      * @param  shape            the shape object to be drawn on the canvas
      */
-     // Note: this is a slightly backwards way of maintaining the shape
-     // objects. It is carefully designed to keep the visible shape interfaces
-     // in this project clean and simple for educational purposes.
     public void draw(Object referenceObject, String color, Shape shape){
         objects.remove(referenceObject);   // just in case it was already there
         objects.add(referenceObject);      // add at the end
@@ -212,8 +192,6 @@ public class Canvas{
         }
     }
 
-
-
     /**
      * Wait for a specified number of milliseconds before finishing.
      * This provides an easy way to specify a small delay which can be
@@ -229,12 +207,12 @@ public class Canvas{
     }
 
     /**
-     * Redraw ell shapes currently on the Canvas.
+     * Redraw all shapes currently on the Canvas.
      */
     private void redraw(){
         erase();
         for(Iterator i=objects.iterator(); i.hasNext(); ) {
-                       shapes.get(i.next()).draw(graphic);
+            shapes.get(i.next()).draw(graphic);
         }
         canvas.repaint();
     }
@@ -250,6 +228,15 @@ public class Canvas{
         graphic.setColor(original);
     }
 
+    // ----------- MÉTODOS PARA OBTENER TAMAÑO DEL CANVAS ----------- 
+    public int getSizeCanvasW() {
+        return canvas.getWidth();
+    }
+
+    public int getSizeCanvasH() {
+        return canvas.getHeight();
+    }
+    // --------------------------------------------------------------
 
     /************************************************************************
      * Inner class CanvasPane - the actual canvas component contained in the
@@ -263,9 +250,7 @@ public class Canvas{
     }
     
     /************************************************************************
-     * Inner class CanvasPane - the actual canvas component contained in the
-     * Canvas frame. This is essentially a JPanel with added capability to
-     * refresh the image drawn on it.
+     * Inner class ShapeDescription - represents a shape and its color.
      */
     private class ShapeDescription{
         private Shape shape;
