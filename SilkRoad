@@ -1,83 +1,91 @@
-import java.util.Random;  // Para generar colores aleatorios
+import java.util.Scanner; // Para recibir la longitud desde el usuario
 
-public class Store {
-    private int positionX;        // Posición X de la tienda
-    private int positionY;        // Posición Y de la tienda
-    private int sizeRectangle;    // Tamaño de la tienda (ancho)
-    private int sizeTriangle;     // Tamaño del techo de la tienda (alto)
-    private String color;         // Color aleatorio de la tienda
+public class SilkRoad {
+    private int length;                 // Longitud de la SilkRoad
+    private int[][] stores;             // Matriz de tiendas {location, tenges}
+    private int[][] robots;             // Matriz de robots {location, tenges}
 
-    private Rectangle base;       // Base de la tienda (rectángulo)
-    private Triangle roof;        // Techo de la tienda (triángulo)
-
-    /**
-     * Constructor para crear la tienda con la posición y tamaño dados.
-     * @param positionX posición X en el lienzo
-     * @param positionY posición Y en el lienzo
-     * @param size tamaño de la tienda
-     */
-    public Store() {
-        this.positionX = 24;
-        this.positionY = 15;
-        this.sizeRectangle = 20;
-        this.sizeTriangle = 20;
-        this.color = getRandomColor();  // Asignamos un color aleatorio
-
-        // Crear la base de la tienda (rectángulo)
-        base = new Rectangle();
-        base.changeColor(color); // Usar el color aleatorio
-        base.changeSize(sizeRectangle / 2, sizeRectangle);  // La base será el doble de ancha que alta
-        base.setPosition(positionX, positionY);
-        base.makeVisible();
-
-        // Crear el techo de la tienda (triángulo)
-        roof = new Triangle();
-        roof.changeColor("brown");  // El color del techo será siempre café
-        roof.changeSize(sizeTriangle / 2, sizeTriangle);  // El techo será un triángulo equilátero
-        roof.setPosition(positionX + 10, positionY - sizeTriangle / 2);  // Colocarlo sobre la base
-        roof.makeVisible();
+    // Constructor que recibe la longitud del camino
+    public SilkRoad(int length) {
+        this.length = length;
+        this.stores = new int[length][2]; // Inicializa la matriz de tiendas
+        this.robots = new int[length][2]; // Inicializa la matriz de robots
     }
 
-    /**
-     * Método para generar un color aleatorio para la tienda.
-     * @return Color aleatorio en formato String.
-     */
-    private String getRandomColor() {
-        // Lista de colores posibles (sin café)
-        String[] colors = {"red", "blue", "green", "yellow", "magenta", "cyan", "purple", "orange"};
-        Random rand = new Random();
-
-        // Seleccionar un color aleatorio de la lista
-        return colors[rand.nextInt(colors.length)];
+    // Métodos para obtener la longitud y las matrices
+    public int getLength() {
+        return length;
     }
 
-    /**
-     * Mueve la tienda a una nueva posición.
-     * @param newX nueva posición X para la tienda
-     * @param newY nueva posición Y para la tienda
-     */
-    public void moveTo(int newX, int newY) {
-        positionX = newX;  // Actualizar la posición X de la tienda
-        positionY = newY;  // Actualizar la posición Y de la tienda
-
-        // Mover las partes de la tienda a las nuevas posiciones
-        base.setPosition(positionX, positionY);  // Mover la base de la tienda
-        roof.setPosition(positionX + 10, positionY - sizeTriangle / 2);  // Mover el techo de la tienda
+    public int[][] getStores() {
+        return stores;
     }
 
-    /**
-     * Hace que la tienda sea visible.
-     */
+    public int[][] getRobots() {
+        return robots;
+    }
+
+    public void placeStore(int location, int tenges) {
+        // Método vacío: Implementar la lógica para colocar una tienda en una ubicación específica
+    }
+
+    public void removeStore(int location) {
+        // Método vacío: Implementar la lógica para eliminar una tienda de una ubicación específica
+    }
+
+    public void placeRobot(int location) {
+        // Método vacío: Implementar la lógica para colocar un robot en una ubicación específica
+    }
+
+    public void removeRobot(int location) {
+        // Método vacío: Implementar la lógica para eliminar un robot de una ubicación específica
+    }
+
+    public void moveRobot(int location, int meters) {
+        // Método vacío: Implementar la lógica para mover un robot a una nueva ubicación
+    }
+
+    public void resupplyStores() {
+        // Método vacío: Implementar la lógica para reabastecer las tiendas con tenges
+    }
+
+    public void returnRobots() {
+        // Método vacío: Implementar la lógica para devolver los robots a sus ubicaciones originales
+    }
+
+    public void reboot() {
+        // Método vacío: Implementar la lógica para reiniciar el sistema
+    }
+
+    public int profit() {
+        // Método vacío: Implementar la lógica para calcular el beneficio total
+        return 0;
+    }
+
+    public int[][] stores() {
+        // Método vacío: Retorna la matriz de tiendas
+        return stores;
+    }
+
+    public int[][] robots() {
+        // Método vacío: Retorna la matriz de robots
+        return robots;
+    }
+
     public void makeVisible() {
-        base.makeVisible();
-        roof.makeVisible();
+        // Método vacío: Implementar la lógica para hacer visible la SilkRoad
     }
 
-    /**
-     * Hace que la tienda sea invisible.
-     */
     public void makeInvisible() {
-        base.makeInvisible();
-        roof.makeInvisible();
+        // Método vacío: Implementar la lógica para hacer invisible la SilkRoad
+    }
+
+    public void finish() {
+        // Método vacío: Implementar la lógica para finalizar el proceso o la simulación
+    }
+
+    public boolean ok() {
+        // Método vacío: Implementar la lógica para verificar el estado correcto
+        return true;
     }
 }
