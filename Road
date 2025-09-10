@@ -1,189 +1,81 @@
+import java.util.*;
+
 public class Road {
-    private Cell[] roadCells;
-    private Store[] stores;
-    private Robot[] robots;
-    private int[] robotsInitLocation;
-    private int[] storesInitTenges;
-    private int length;
-    private int cellSize = 50; // Tamaño fijo de la celda
+    private ArrayList<Cell> cells;
+    private int cellSize;
+    private int gap;
 
-    public Road(int length) {
-        this.length = length;
-        roadCells = new Cell[length];
-        stores = new Store[length];
-        robots = new Robot[length];
-        robotsInitLocation = new int[length];
-        storesInitTenges = new int[length];
-        crearCeldasFila();
+    public Road(int cellSize, int gap) {
+        this.cells = new ArrayList<>();
+        this.cellSize = cellSize;
+        this.gap = gap;
     }
 
-    // Dibuja todas las celdas en una sola fila, empezando en la esquina superior izquierda
-    private void crearCeldasFila() {
-        int startX = 0; // esquina izquierda
-        int startY = 0; // esquina arriba
-        for (int i = 0; i < length; i++) {
-            int x = startX + i * cellSize;
-            int y = startY;
-            roadCells[i] = new Cell();
-            roadCells[i].setPosition(x, y);
-            roadCells[i].makeVisible();
-            stores[i] = null;
-            robots[i] = null;
-            robotsInitLocation[i] = -1;
-            storesInitTenges[i] = 0;
+    // Dibuja una espiral tipo "caracol" dejando espacio entre vueltas
+    public void drawSpiral(int length) {
+    Canvas canvas = Canvas.getCanvas();
+    int canvasWidth = canvas.getSizeCanvasW();
+    int canvasHeight = canvas.getSizeCanvasH();
+
+    int cellSize = this.cellSize;
+    int gap = this.gap;
+
+    int step = cellSize + gap;
+    int x0 = gap, y0 = gap;
+    int maxCols = (canvasWidth - gap) / step;
+    int maxRows = (canvasHeight - gap) / step;
+
+    int left = 0, top = 0;
+    int right = maxCols - 1, bottom = maxRows - 1;
+    int i = 0;
+
+    while (i < length && left <= right && top <= bottom) {
+        // Top row: izquierda a derecha
+        for (int col = left; col <= right && i < length; col++) {
+            int x = x0 + col * step;
+            int y = y0 + top * step;
+            addCell(x, y);
+            i++;
         }
-    }
+        top += 2; // Salta una fila para dejar espacio
 
-    public boolean placeStore(int location, int tenges) {
-        if (location < 0 || location >= length || stores[location] != null) return false;
-        Store store = new Store();
-        int cellX = roadCells[location].getPositionX();
-        int cellY = roadCells[location].getPositionY();
-        store.moveTo(cellX + 28, cellY + 2); // esquina superior derecha de la celda
-        store.makeVisible();
-        stores[location] = store;
-        storesInitTenges[location] = tenges;
-        roadCells[location].placeStore();
-        return true;
-    }
-
-    public boolean removeStore(int location) {
-        if (location < 0 || location >= length || stores[location] == null) return false;
-        stores[location].makeInvisible();
-        stores[location] = null;
-        storesInitTenges[location] = 0;
-        roadCells[location].removeStore();
-        return true;
-    }
-
-    public boolean placeRobot(int location) {
-        if (location < 0 || location >= length || robots[location] != null) return false;
-        Robot robot = new Robot();
-        int cellX = roadCells[location].getPositionX();
-        int cellY = roadCells[location].getPositionY();
-        robot.move(cellX + 2 - robot.getX(), cellY + 33 - robot.getY()); // esquina inferior izquierda
-        robot.makeVisible();
-        robots[location] = robot;
-        robotsInitLocation[location] = location;
-        roadCells[location].placeRobot();
-        return true;
-    }
-
-    public boolean removeRobot(int location) {
-        if (location < 0 || location >= length || robots[location] == null) return false;
-        robots[location].makeInvisible();
-        robots[location] = null;
-        robotsInitLocation[location] = -1;
-        roadCells[location].removeRobot();
-        return true;
-    }
-
-    public boolean moveRobot(int location, int meters) {
-        if (location < 0 || location >= length || robots[location] == null) return false;
-        int target = location + meters;
-        if (target < 0 || target >= length || robots[target] != null) return false;
-        Robot robot = robots[location];
-        int cellX = roadCells[target].getPositionX();
-        int cellY = roadCells[target].getPositionY();
-        robot.move(cellX + 2 - robot.getX(), cellY + 33 - robot.getY());
-        robots[target] = robot;
-        robots[location] = null;
-        robotsInitLocation[target] = robotsInitLocation[location];
-        robotsInitLocation[location] = -1;
-        roadCells[target].placeRobot();
-        roadCells[location].removeRobot();
-        return true;
-    }
-
-    public boolean resupplyStores() {
-        return true;
-    }
-
-    public boolean returnRobots() {
-        for (int i = 0; i < length; i++) {
-            if (robots[i] != null && robotsInitLocation[i] != -1 && robotsInitLocation[i] != i) {
-                int initLoc = robotsInitLocation[i];
-                if (robots[initLoc] == null) {
-                    Robot robot = robots[i];
-                    int cellX = roadCells[initLoc].getPositionX();
-                    int cellY = roadCells[initLoc].getPositionY();
-                    robot.move(cellX + 2 - robot.getX(), cellY + 33 - robot.getY());
-                    robots[initLoc] = robot;
-                    robots[i] = null;
-                    robotsInitLocation[initLoc] = initLoc;
-                    robotsInitLocation[i] = -1;
-                    roadCells[initLoc].placeRobot();
-                    roadCells[i].removeRobot();
-                }
-            }
+        // Right column: arriba a abajo
+        for (int row = top - 1; row <= bottom && i < length; row++) {
+            int x = x0 + right * step;
+            int y = y0 + row * step;
+            addCell(x, y);
+            i++;
         }
-        return true;
-    }
+        right -= 2; // Salta una columna para dejar espacio
 
-    public boolean reboot() {
-        for (int i = 0; i < length; i++) {
-            if (stores[i] != null) {
-                stores[i].makeInvisible();
-                stores[i] = null;
-                storesInitTenges[i] = 0;
-                roadCells[i].removeStore();
-            }
-            if (robots[i] != null) {
-                robots[i].makeInvisible();
-                robots[i] = null;
-                robotsInitLocation[i] = -1;
-                roadCells[i].removeRobot();
-            }
+        // Bottom row: derecha a izquierda
+        for (int col = right + 1; col >= left && i < length; col--) {
+            int x = x0 + col * step;
+            int y = y0 + bottom * step;
+            addCell(x, y);
+            i++;
         }
-        return true;
-    }
+        bottom -= 2; // Salta una fila para dejar espacio
 
-    public int[][] stores() {
-        int count = 0;
-        for (int i = 0; i < length; i++) if (stores[i] != null) count++;
-        int[][] result = new int[count][2];
-        int idx = 0;
-        for (int i = 0; i < length; i++) {
-            if (stores[i] != null) {
-                result[idx][0] = i;
-                result[idx][1] = storesInitTenges[i];
-                idx++;
-            }
+        // Left column: abajo a arriba
+        for (int row = bottom + 1; row >= top && i < length; row--) {
+            int x = x0 + left * step;
+            int y = y0 + row * step;
+            addCell(x, y);
+            i++;
         }
-        return result;
+        left += 2; // Salta una columna para dejar espacio
+    }
+}
+
+    private void addCell(int px, int py) {
+        Cell cell = new Cell();
+        cell.setPosition(px, py);
+        cell.makeVisible();
+        cells.add(cell);
     }
 
-    public int[][] robots() {
-        int count = 0;
-        for (int i = 0; i < length; i++) if (robots[i] != null) count++;
-        int[][] result = new int[count][1];
-        int idx = 0;
-        for (int i = 0; i < length; i++) {
-            if (robots[i] != null) {
-                result[idx][0] = i;
-                idx++;
-            }
-        }
-        return result;
-    }
-
-    public void makeVisible() {
-        for (int i = 0; i < length; i++) roadCells[i].makeVisible();
-        for (int i = 0; i < length; i++) {
-            if (stores[i] != null) stores[i].makeVisible();
-            if (robots[i] != null) robots[i].makeVisible();
-        }
-    }
-
-    public void makeInvisible() {
-        for (int i = 0; i < length; i++) roadCells[i].makeInvisible();
-        for (int i = 0; i < length; i++) {
-            if (stores[i] != null) stores[i].makeInvisible();
-            if (robots[i] != null) robots[i].makeInvisible();
-        }
-    }
-
-    public void finish() {
-        // Si necesitas lógica de cierre, ponla aquí
+    public ArrayList<Cell> getCells() {
+        return cells;
     }
 }
