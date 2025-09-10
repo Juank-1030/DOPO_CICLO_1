@@ -1,0 +1,29 @@
+public class MessageBanner {
+    private Rectangle banner;
+    private String currentMessage;
+    private boolean visible;
+
+    public MessageBanner() {
+        banner = new Rectangle();
+        banner.changeColor("red");
+        banner.changeSize(300, 30);
+        banner.setPosition(20, 80);
+        banner.makeInvisible();
+        visible = false;
+        currentMessage = "";
+    }
+
+    public void show(String msg) {
+        currentMessage = msg;
+        banner.makeVisible();
+        visible = true;
+        // Aquí puedes dibujar el texto usando un método de texto en Canvas, si tienes uno.
+        // Si no, puedes usar JOptionPane.showMessageDialog(null, msg);
+    }
+
+    public void hide() {
+        banner.makeInvisible();
+        visible = false;
+        currentMessage = "";
+    }
+}
