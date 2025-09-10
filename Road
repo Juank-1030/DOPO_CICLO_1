@@ -2,80 +2,126 @@ import java.util.*;
 
 public class Road {
     private ArrayList<Cell> cells;
-    private int cellSize;
-    private int gap;
+    private int length;
+    private int[][] positions;
 
-    public Road(int cellSize, int gap) {
+    public Road(int length) {
         this.cells = new ArrayList<>();
-        this.cellSize = cellSize;
-        this.gap = gap;
+        this.length = length;
+        this.positions = new int[length][2];
+        drawSpiral();
     }
 
     // Dibuja una espiral tipo "caracol" dejando espacio entre vueltas
-    public void drawSpiral(int length) {
-    Canvas canvas = Canvas.getCanvas();
-    int canvasWidth = canvas.getSizeCanvasW();
-    int canvasHeight = canvas.getSizeCanvasH();
-
-    int cellSize = this.cellSize;
-    int gap = this.gap;
-
-    int step = cellSize + gap;
-    int x0 = gap, y0 = gap;
-    int maxCols = (canvasWidth - gap) / step;
-    int maxRows = (canvasHeight - gap) / step;
-
-    int left = 0, top = 0;
-    int right = maxCols - 1, bottom = maxRows - 1;
-    int i = 0;
-
-    while (i < length && left <= right && top <= bottom) {
-        // Top row: izquierda a derecha
-        for (int col = left; col <= right && i < length; col++) {
-            int x = x0 + col * step;
-            int y = y0 + top * step;
-            addCell(x, y);
-            i++;
+    public void drawSpiral() {
+        Canvas canvas = Canvas.getCanvas();
+        int canvasWidth = canvas.getSizeCanvasW();
+        int canvasHeight = canvas.getSizeCanvasH();
+    
+        int cellSize = 15;  // Tamaño de la celda
+        int gap = 30;       // Espacio entre celdas
+    
+        int step = cellSize + gap;  // Distancia total que ocupará cada celda (celda + espacio)
+        int x0 = gap, y0 = gap;     // Posición inicial
+        int maxCols = (canvasWidth - gap) / step;
+        int maxRows = (canvasHeight - gap) / step;
+    
+        int left = 1, top = 0;
+        int right = maxCols - 1, bottom = maxRows - 1;
+        int i = 0;
+    
+        while (i < length && left <= right && top <= bottom) {
+            // Top row: izquierda a derecha
+            for (int col = left-1; col <= right && i < length; col++) {
+                int x = x0 + col * step;
+                int y = y0 + top * step;
+                addCell(x, y);  // Agregar la celda
+                storePosition(i, x, y);
+                i++;
+            }
+            top += 2;  // Aumenta el espacio en la parte superior
+    
+            // Right column: arriba a abajo
+            for (int row = top - 1; row <= bottom && i < length; row++) {
+                int x = x0 + right * step;
+                int y = y0 + row * step;
+                addCell(x, y);  // Agregar la celda
+                storePosition(i, x, y);
+                i++;
+            }
+            right -= 2;  // Aumenta el espacio en la columna derecha
+    
+            // Bottom row: derecha a izquierda
+            for (int col = right + 1; col >= left && i < length; col--) {
+                int x = x0 + col * step;
+                int y = y0 + bottom * step;
+                addCell(x, y);  // Agregar la celda
+                storePosition(i, x, y);
+                i++;
+            }
+            bottom -= 2;  // Aumenta el espacio en la parte inferior
+    
+            // Left column: abajo a arriba
+            for (int row = bottom + 1; row >= top && i < length; row--) {
+                int x = x0 + left * step;
+                int y = y0 + row * step;
+                addCell(x, y);  // Agregar la celda
+                storePosition(i, x, y);
+                i++;
+            }
+            left += 2;  // Aumenta el espacio en la columna izquierda
         }
-        top += 2; // Salta una fila para dejar espacio
-
-        // Right column: arriba a abajo
-        for (int row = top - 1; row <= bottom && i < length; row++) {
-            int x = x0 + right * step;
-            int y = y0 + row * step;
-            addCell(x, y);
-            i++;
-        }
-        right -= 2; // Salta una columna para dejar espacio
-
-        // Bottom row: derecha a izquierda
-        for (int col = right + 1; col >= left && i < length; col--) {
-            int x = x0 + col * step;
-            int y = y0 + bottom * step;
-            addCell(x, y);
-            i++;
-        }
-        bottom -= 2; // Salta una fila para dejar espacio
-
-        // Left column: abajo a arriba
-        for (int row = bottom + 1; row >= top && i < length; row--) {
-            int x = x0 + left * step;
-            int y = y0 + row * step;
-            addCell(x, y);
-            i++;
-        }
-        left += 2; // Salta una columna para dejar espacio
     }
-}
+    
+    // Método para almacenar la posición de cada celda en la matriz positions
+    private void storePosition(int index, int x, int y) {
+        if (index < length) {
+            positions[index][0] = x;
+            positions[index][1] = y;
+        }
+    }
 
+    // Método para agregar la celda a la lista y hacerla visible
     private void addCell(int px, int py) {
-        Cell cell = new Cell();
-        cell.setPosition(px, py);
-        cell.makeVisible();
-        cells.add(cell);
+        Cell cell = new Cell();  // Crear nueva celda
+        cell.setPosition(px, py);  // Establecer su posición
+        cell.makeVisible();  // Hacerla visible
+        cells.add(cell);  // Agregarla a la lista de celdas
     }
 
+    // Método para obtener la información de una casilla específica
+    public String getCellInfo(int index) {
+        if (index >= 0 && index < length) {
+            int x = positions[index][0];
+            int y = positions[index][1];
+            return "Casilla " + index + ": Coordenadas (X, Y) = (" + x + ", " + y + ")";
+        }
+        return "Índice fuera de rango";
+    }
+    
+    // Método para obtener la posición X de una celda en una longitud específica
+    public int getCellX(int index) {
+        if (index >= 0 && index < length) {
+            return positions[index][0];
+        }
+        return -1;  // Retorna -1 si el índice está fuera de rango
+    }
+
+    // Método para obtener la posición Y de una celda en una longitud específica
+    public int getCellY(int index) {
+        if (index >= 0 && index < length) {
+            return positions[index][1];
+        }
+        return -1;  // Retorna -1 si el índice está fuera de rango
+    }
+
+    // Método para obtener todas las celdas creadas
     public ArrayList<Cell> getCells() {
         return cells;
+    }
+
+    // Método para obtener la matriz de posiciones
+    public int[][] getPositions() {
+        return positions;
     }
 }
