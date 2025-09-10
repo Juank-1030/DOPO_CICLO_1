@@ -40,6 +40,22 @@ public class Canvas{
         canvasSingleton.setVisible(true);
         return canvasSingleton;
     }
+    
+    public int getSizeCanvasW(){
+        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+        int screenWidth = screenSize.width;
+        
+        return screenWidth;
+        
+    }
+    
+    public int getSizeCanvasH(){
+        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+        int screenHeight = screenSize.height;
+        
+        return screenHeight;
+        
+    }
 
     //  ----- instance part -----
 
