@@ -1,47 +1,204 @@
+import java.util.*;
+
 public class SilkRoad {
-    private Road road;
     private int length;
+    private Road road;
+    private Store[] stores;
+    private Robot[] robots;
+    private int[] robotsInitLocation;
+    private int[] storesInitTenges;
     private int profit;
     private boolean lastOperationOK;
+    private ProgressBar progressBar;
+    private boolean visible;
+    private MessageBanner messageBanner;
+    private int cellSize = 50;
+    private int gap = 10; // Puedes ajustar el espacio entre vueltas
+    private int maxProfit;
 
     public SilkRoad(int length) {
         this.length = length;
+        this.road = new Road(cellSize, gap);
+        this.stores = new Store[length];
+        this.robots = new Robot[length];
+        this.robotsInitLocation = new int[length];
+        this.storesInitTenges = new int[length];
         this.profit = 0;
+        this.maxProfit = length * 100; // Ejemplo, puedes ajustar la lógica
         this.lastOperationOK = true;
-        road = new Road(length); // Solo pasa el length, NO referencia a SilkRoad
+        this.visible = true;
+        this.messageBanner = new MessageBanner();
+
+        if (length > 14) {
+            road.drawSpiral(length);
+        } else {
+            drawStraightLine();
+        }
+        int barWidth = Math.max(300, cellSize * Math.min(length, 10));
+        progressBar = new ProgressBar(20, cellSize * 2, barWidth, 20);
+        progressBar.setProgress(0);
     }
 
+    private void drawStraightLine() {
+        for (int i = 0; i < length; i++) {
+            Cell cell = new Cell();
+            cell.setPosition(i * cellSize, 0);
+            cell.makeVisible();
+            road.getCells().add(cell);
+            stores[i] = null;
+            robots[i] = null;
+            robotsInitLocation[i] = -1;
+            storesInitTenges[i] = 0;
+        }
+    }
+
+    // Coloca la tienda en la esquina superior derecha de la celda
     public void placeStore(int location, int tenges) {
-        lastOperationOK = road.placeStore(location, tenges);
+        if (location < 0 || location >= length || stores[location] != null) {
+            lastOperationOK = false;
+            showMessage("No se puede adicionar tienda en esa posición");
+            return;
+        }
+        Cell cell = road.getCells().get(location);
+        int cellX = cell.getPositionX();
+        int cellY = cell.getPositionY();
+        int anchoStore = 20;
+        int margen = 2;
+        int storeX = cellX + cellSize - anchoStore - margen;
+        int storeY = cellY + margen;
+        Store store = new Store();
+        store.moveTo(storeX, storeY);
+        store.makeVisible();
+        stores[location] = store;
+        storesInitTenges[location] = tenges;
+        lastOperationOK = true;
     }
 
     public void removeStore(int location) {
-        lastOperationOK = road.removeStore(location);
+        if (location < 0 || location >= length || stores[location] == null) {
+            lastOperationOK = false;
+            showMessage("No hay tienda en esa posición");
+            return;
+        }
+        stores[location].makeInvisible();
+        stores[location] = null;
+        storesInitTenges[location] = 0;
+        lastOperationOK = true;
     }
 
+    // Coloca el robot en la esquina inferior izquierda de la celda
     public void placeRobot(int location) {
-        lastOperationOK = road.placeRobot(location);
+        if (location < 0 || location >= length) {
+            lastOperationOK = false;
+            showMessage("No se puede adicionar robot en esa posición");
+            return;
+        }
+        if (robots[location] != null) {
+            lastOperationOK = false;
+            showMessage("Ya hay un robot en esa posición");
+            return;
+        }
+        Cell cell = road.getCells().get(location);
+        int cellX = cell.getPositionX();
+        int cellY = cell.getPositionY();
+        int altoRobot = 15;
+        int margen = 2;
+        int robotX = cellX + margen;
+        int robotY = cellY + cellSize - altoRobot - margen;
+        Robot robot = new Robot();
+        robot.move(robotX - robot.getX(), robotY - robot.getY());
+        robot.makeVisible();
+        robots[location] = robot;
+        robotsInitLocation[location] = location;
+        lastOperationOK = true;
     }
 
     public void removeRobot(int location) {
-        lastOperationOK = road.removeRobot(location);
+        if (location < 0 || location >= length || robots[location] == null) {
+            lastOperationOK = false;
+            showMessage("No hay robot en esa posición");
+            return;
+        }
+        robots[location].makeInvisible();
+        robots[location] = null;
+        robotsInitLocation[location] = -1;
+        lastOperationOK = true;
     }
 
     public void moveRobot(int location, int meters) {
-        lastOperationOK = road.moveRobot(location, meters);
+        if (location < 0 || location >= length || robots[location] == null) {
+            lastOperationOK = false;
+            showMessage("No hay robot en esa posición");
+            return;
+        }
+        int target = location + meters;
+        if (target < 0 || target >= length || robots[target] != null) {
+            lastOperationOK = false;
+            showMessage("Destino inválido para el robot");
+            return;
+        }
+        Cell cell = road.getCells().get(target);
+        int cellX = cell.getPositionX();
+        int cellY = cell.getPositionY();
+        int altoRobot = 15;
+        int margen = 2;
+        int robotX = cellX + margen;
+        int robotY = cellY + cellSize - altoRobot - margen;
+
+        robots[target] = robots[location];
+        robots[target].move(robotX - robots[target].getX(), robotY - robots[target].getY());
+        robots[location] = null;
+        robotsInitLocation[target] = robotsInitLocation[location];
+        robotsInitLocation[location] = -1;
+        lastOperationOK = true;
     }
 
     public void resupplyStores() {
-        lastOperationOK = road.resupplyStores();
+        for (Store s : stores) {
+            if (s != null) s.resupply();
+        }
+        lastOperationOK = true;
     }
 
     public void returnRobots() {
-        lastOperationOK = road.returnRobots();
+        for (int i = 0; i < length; i++) {
+            if (robots[i] != null && robotsInitLocation[i] != -1 && robotsInitLocation[i] != i) {
+                int initLoc = robotsInitLocation[i];
+                if (robots[initLoc] == null) {
+                    Cell cell = road.getCells().get(initLoc);
+                    int cellX = cell.getPositionX();
+                    int cellY = cell.getPositionY();
+                    int altoRobot = 15;
+                    int margen = 2;
+                    int robotX = cellX + margen;
+                    int robotY = cellY + cellSize - altoRobot - margen;
+                    robots[initLoc] = robots[i];
+                    robots[initLoc].move(robotX - robots[initLoc].getX(), robotY - robots[initLoc].getY());
+                    robots[i] = null;
+                    robotsInitLocation[initLoc] = initLoc;
+                    robotsInitLocation[i] = -1;
+                }
+            }
+        }
+        lastOperationOK = true;
     }
 
     public void reboot() {
-        lastOperationOK = road.reboot();
+        for (int i = 0; i < length; i++) {
+            if (stores[i] != null) {
+                stores[i].makeInvisible();
+                stores[i] = null;
+                storesInitTenges[i] = 0;
+            }
+            if (robots[i] != null) {
+                robots[i].makeInvisible();
+                robots[i] = null;
+                robotsInitLocation[i] = -1;
+            }
+        }
         profit = 0;
+        progressBar.setProgress(0);
+        lastOperationOK = true;
     }
 
     public int porfit() {
@@ -49,23 +206,64 @@ public class SilkRoad {
     }
 
     public int[][] stores() {
-        return road.stores();
+        ArrayList<int[]> result = new ArrayList<>();
+        for (int i = 0; i < length; i++) {
+            if (stores[i] != null) {
+                result.add(new int[]{i, storesInitTenges[i]});
+            }
+        }
+        return result.toArray(new int[result.size()][]);
     }
 
     public int[][] robots() {
-        return road.robots();
+        ArrayList<int[]> result = new ArrayList<>();
+        for (int i = 0; i < length; i++) {
+            if (robots[i] != null) {
+                result.add(new int[]{i});
+            }
+        }
+        return result.toArray(new int[result.size()][]);
     }
 
     public void makeVisible() {
-        road.makeVisible();
+        visible = true;
+        for (Cell cell : road.getCells()) {
+            cell.makeVisible();
+        }
+        for (int i = 0; i < length; i++) {
+            if (stores[i] != null) stores[i].makeVisible();
+            if (robots[i] != null) robots[i].makeVisible();
+        }
+        progressBar.makeVisible();
     }
 
     public void makeInvisible() {
-        road.makeInvisible();
+        visible = false;
+        for (Cell cell : road.getCells()) {
+            cell.makeInvisible();
+        }
+        for (int i = 0; i < length; i++) {
+            if (stores[i] != null) stores[i].makeInvisible();
+            if (robots[i] != null) robots[i].makeInvisible();
+        }
+        progressBar.makeInvisible();
+        messageBanner.hide();
+    }
+
+    private void showMessage(String msg) {
+        if (visible) messageBanner.show(msg);
     }
 
     public void finish() {
-        road.finish();
+        for (Cell cell : road.getCells()) {
+            cell.makeInvisible();
+        }
+        for (int i = 0; i < length; i++) {
+            if (stores[i] != null) stores[i].makeInvisible();
+            if (robots[i] != null) robots[i].makeInvisible();
+        }
+        progressBar.makeInvisible();
+        messageBanner.hide();
     }
 
     public boolean ok() {
