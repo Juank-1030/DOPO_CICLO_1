@@ -1,180 +1,221 @@
-public class Cell {
-    private String color;              // Color de la celda
-    private boolean hasRobot;          // Indica si la celda tiene un robot
-    private boolean hasStore;          // Indica si la celda tiene una tienda
+import java.util.*;
 
-    private int positionX;     
-    private int positionY;     
+public class SilkRoad {
+    private int length;
+    private Cell[] cells;
+    private Store[] stores;
+    private Robot[] robots;
+    private int[] robotsInitLocation;
+    private int[] storesInitTenges;
+    private int profit;
+    private boolean lastOperationOK;
+    private int cellSize = 50; // Ajusta al tamaño de tu celda
 
-    private Rectangle background; 
-    private Rectangle cell;       
+    public SilkRoad(int length) {
+        this.length = length;
+        this.cells = new Cell[length];
+        this.stores = new Store[length];
+        this.robots = new Robot[length];
+        this.robotsInitLocation = new int[length];
+        this.storesInitTenges = new int[length];
+        this.profit = 0;
+        this.lastOperationOK = true;
 
-    /**
-     * Construye una celda en el tablero.
-     *
-     * @param color color de la celda.
-     */
-    public Cell() {
-        this.color = color;
-        this.hasRobot = false;
-        this.hasStore = false;
-
-        this.positionX = 0; 
-        this.positionY = 0;
-
-        background = new Rectangle();
-        background.changeColor("black");
-        background.changeSize(50, 50);
-        background.setPosition(positionX, positionY);
-        background.makeVisible();
-    
-        cell = new Rectangle();
-        cell.changeColor("desertsand");
-        cell.changeSize(40, 40);
-        cell.setPosition(5, 5);
-        cell.makeVisible();
-    }
-
-    /**
-     * Coloca un robot en la celda.
-     */
-    public void placeRobot() {
-        this.hasRobot = true;
-    }
-
-    /**
-     * Elimina el robot de la celda.
-     */
-    public void removeRobot() {
-        this.hasRobot = false;
-    }
-
-    /**
-     * Coloca una tienda en la celda.
-     */
-    public void placeStore() {
-        this.hasStore = true;
-    }
-
-    /**
-     * Elimina la tienda de la celda.
-     */
-    public void removeStore() {
-        this.hasStore = false;
-    }
-
-    /**
-     * Verifica si la celda contiene un robot.
-     *
-     * @return {@code true} si hay un robot, {@code false} en caso contrario.
-     */
-    public boolean hasRobot() {
-        return hasRobot;
-    }
-
-    /**
-     * Verifica si la celda contiene una tienda.
-     *
-     * @return {@code true} si hay una tienda, {@code false} en caso contrario.
-     */
-    public boolean hasStore() {
-        return hasStore;
-    }
-
-    /**
-     * Mueve la celda (y todos sus elementos gráficos) en una dirección dada.
-     *
-     * @param direction dirección a mover: "up", "down", "left" o "right".
-     */
-    public void moveTo(String direction) {
-        int step = 45; // tamaño de la casilla en píxeles
-        int dx = 0;
-        int dy = 0;
-    
-        switch (direction.toLowerCase()) {
-            case "up":    dy = -step; break;
-            case "down":  dy = step;  break;
-            case "left":  dx = -step; break;
-            case "right": dx = step;  break;
-            default:
-                System.out.println("Dirección no válida. Usa: up, down, left, right");
-                return;
+        int cellSize = this.cellSize;
+        int startX = 0;
+        int startY = 0;
+        for (int i = 0; i < length; i++) {
+            cells[i] = new Cell();
+            cells[i].setPosition(startX + i * cellSize, startY);
+            cells[i].makeVisible();
+            stores[i] = null;
+            robots[i] = null;
+            robotsInitLocation[i] = -1;
+            storesInitTenges[i] = 0;
         }
-    
-        // 🔹 Actualizar posiciones lógicas
-        positionX += dx;
-        positionY += dy;
-    
-        // 🔹 Mover representaciones gráficas
-        background.moveHorizontal(dx);
-        background.moveVertical(dy);
-    
-        cell.moveHorizontal(dx);
-        cell.moveVertical(dy);
     }
-    
-    /**
-     * Hace visible gráficamente la celda (fondo, celda, y cualquier objeto si existe).
-     */
+
+    // Coloca la tienda en la esquina superior derecha de la celda
+    public void placeStore(int location, int tenges) {
+        if (location < 0 || location >= length || stores[location] != null) {
+            lastOperationOK = false;
+            return;
+        }
+        int cellX = cells[location].getPositionX();
+        int cellY = cells[location].getPositionY();
+        int anchoStore = 20;
+        int altoStore = 20;
+        int margen = 2;
+        int storeX = cellX + cellSize - anchoStore - margen;
+        int storeY = cellY + margen;
+        Store store = new Store();
+        store.moveTo(storeX, storeY);
+        store.makeVisible();
+        stores[location] = store;
+        storesInitTenges[location] = tenges;
+        lastOperationOK = true;
+    }
+
+    public void removeStore(int location) {
+        if (location < 0 || location >= length || stores[location] == null) {
+            lastOperationOK = false;
+            return;
+        }
+        stores[location].makeInvisible();
+        stores[location] = null;
+        storesInitTenges[location] = 0;
+        lastOperationOK = true;
+    }
+
+    // Coloca el robot en la esquina inferior izquierda de la celda
+    public void placeRobot(int location) {
+        if (location < 0 || location >= length) {
+            lastOperationOK = false;
+            return;
+        }
+        if (robots[location] != null) {
+            lastOperationOK = false;
+            return;
+        }
+        int cellX = cells[location].getPositionX();
+        int cellY = cells[location].getPositionY();
+        int altoRobot = 15;
+        int margen = 2;
+        int robotX = cellX + margen;
+        int robotY = cellY + cellSize - altoRobot - margen;
+        Robot robot = new Robot();
+        robot.move(robotX - robot.getX(), robotY - robot.getY());
+        robot.makeVisible();
+        robots[location] = robot;
+        robotsInitLocation[location] = location;
+        lastOperationOK = true;
+    }
+
+    public void removeRobot(int location) {
+        if (location < 0 || location >= length || robots[location] == null) {
+            lastOperationOK = false;
+            return;
+        }
+        robots[location].makeInvisible();
+        robots[location] = null;
+        robotsInitLocation[location] = -1;
+        lastOperationOK = true;
+    }
+
+    public void moveRobot(int location, int meters) {
+        if (location < 0 || location >= length || robots[location] == null) {
+            lastOperationOK = false;
+            return;
+        }
+        int target = location + meters;
+        if (target < 0 || target >= length || robots[target] != null) {
+            lastOperationOK = false;
+            return;
+        }
+        int cellX = cells[target].getPositionX();
+        int cellY = cells[target].getPositionY();
+        int altoRobot = 15;
+        int margen = 2;
+        int robotX = cellX + margen;
+        int robotY = cellY + cellSize - altoRobot - margen;
+
+        robots[target] = robots[location];
+        robots[target].move(robotX - robots[target].getX(), robotY - robots[target].getY());
+        robots[location] = null;
+        robotsInitLocation[target] = robotsInitLocation[location];
+        robotsInitLocation[location] = -1;
+        lastOperationOK = true;
+    }
+
+    public void resupplyStores() {
+        // Si Store tiene método para reabastecer, úsalo aquí
+        lastOperationOK = true;
+    }
+
+    public void returnRobots() {
+        for (int i = 0; i < length; i++) {
+            if (robots[i] != null && robotsInitLocation[i] != -1 && robotsInitLocation[i] != i) {
+                int initLoc = robotsInitLocation[i];
+                if (robots[initLoc] == null) {
+                    int cellX = cells[initLoc].getPositionX();
+                    int cellY = cells[initLoc].getPositionY();
+                    int altoRobot = 15;
+                    int margen = 2;
+                    int robotX = cellX + margen;
+                    int robotY = cellY + cellSize - altoRobot - margen;
+                    robots[initLoc] = robots[i];
+                    robots[initLoc].move(robotX - robots[initLoc].getX(), robotY - robots[initLoc].getY());
+                    robots[i] = null;
+                    robotsInitLocation[initLoc] = initLoc;
+                    robotsInitLocation[i] = -1;
+                }
+            }
+        }
+        lastOperationOK = true;
+    }
+
+    public void reboot() {
+        for (int i = 0; i < length; i++) {
+            if (stores[i] != null) {
+                stores[i].makeInvisible();
+                stores[i] = null;
+                storesInitTenges[i] = 0;
+            }
+            if (robots[i] != null) {
+                robots[i].makeInvisible();
+                robots[i] = null;
+                robotsInitLocation[i] = -1;
+            }
+        }
+        profit = 0;
+        lastOperationOK = true;
+    }
+
+    public int porfit() {
+        return profit;
+    }
+
+    public int[][] stores() {
+        ArrayList<int[]> result = new ArrayList<>();
+        for (int i = 0; i < length; i++) {
+            if (stores[i] != null) {
+                result.add(new int[]{i, storesInitTenges[i]});
+            }
+        }
+        return result.toArray(new int[result.size()][]);
+    }
+
+    public int[][] robots() {
+        ArrayList<int[]> result = new ArrayList<>();
+        for (int i = 0; i < length; i++) {
+            if (robots[i] != null) {
+                result.add(new int[]{i});
+            }
+        }
+        return result.toArray(new int[result.size()][]);
+    }
+
     public void makeVisible() {
-        background.makeVisible();
-        cell.makeVisible();
+        for (int i = 0; i < length; i++) {
+            cells[i].makeVisible();
+            if (stores[i] != null) stores[i].makeVisible();
+            if (robots[i] != null) robots[i].makeVisible();
+        }
     }
 
-    /**
-     * Hace invisible gráficamente la celda (fondo, celda, y cualquier objeto si existe).
-     */
     public void makeInvisible() {
-        background.makeInvisible();
-        cell.makeInvisible();
-    }
-    
-    /**
-     * Devuelve la posición X de la celda.
-     *
-     * @return posición X en el tablero.
-     */
-    public int getPositionX() {
-        return positionX;
-    }
-    
-    /**
-     * Devuelve la posición Y de la celda.
-     *
-     * @return posición Y en el tablero.
-     */
-    public int getPositionY() {
-        return positionY;
-    }
-    
-    /**
-     * Devuelve el color de la celda.
-     *
-     * @return color asociado a la celda.
-     */
-    public String getColor() {
-        return color;
+        for (int i = 0; i < length; i++) {
+            cells[i].makeInvisible();
+            if (stores[i] != null) stores[i].makeInvisible();
+            if (robots[i] != null) robots[i].makeInvisible();
+        }
     }
 
-    /**
-     * Reubica la celda en coordenadas absolutas nuevas.
-     * Esto mueve todos los elementos gráficos asociados.
-     *
-     * @param x nueva coordenada X.
-     * @param y nueva coordenada Y.
-     */
-    public void setPosition(int x, int y) {
-        int dx = x - this.positionX;
-        int dy = y - this.positionY;
+    public void finish() {
+        // Si necesitas lógica extra para terminar la simulación, ponla aquí
+    }
 
-        this.positionX = x;
-        this.positionY = y;
-
-        // Mover todo gráficamente
-        background.moveHorizontal(dx);
-        background.moveVertical(dy);
-
-        cell.moveHorizontal(dx);
-        cell.moveVertical(dy);
+    public boolean ok() {
+        return lastOperationOK;
     }
 }
