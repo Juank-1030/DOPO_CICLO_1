@@ -1,91 +1,180 @@
-import java.util.Scanner; // Para recibir la longitud desde el usuario
+public class Cell {
+    private String color;              // Color de la celda
+    private boolean hasRobot;          // Indica si la celda tiene un robot
+    private boolean hasStore;          // Indica si la celda tiene una tienda
 
-public class SilkRoad {
-    private int length;                 // Longitud de la SilkRoad
-    private int[][] stores;             // Matriz de tiendas {location, tenges}
-    private int[][] robots;             // Matriz de robots {location, tenges}
+    private int positionX;     
+    private int positionY;     
 
-    // Constructor que recibe la longitud del camino
-    public SilkRoad(int length) {
-        this.length = length;
-        this.stores = new int[length][2]; // Inicializa la matriz de tiendas
-        this.robots = new int[length][2]; // Inicializa la matriz de robots
+    private Rectangle background; 
+    private Rectangle cell;       
+
+    /**
+     * Construye una celda en el tablero.
+     *
+     * @param color color de la celda.
+     */
+    public Cell() {
+        this.color = color;
+        this.hasRobot = false;
+        this.hasStore = false;
+
+        this.positionX = 0; 
+        this.positionY = 0;
+
+        background = new Rectangle();
+        background.changeColor("black");
+        background.changeSize(50, 50);
+        background.setPosition(positionX, positionY);
+        background.makeVisible();
+    
+        cell = new Rectangle();
+        cell.changeColor("desertsand");
+        cell.changeSize(40, 40);
+        cell.setPosition(5, 5);
+        cell.makeVisible();
     }
 
-    // Métodos para obtener la longitud y las matrices
-    public int getLength() {
-        return length;
+    /**
+     * Coloca un robot en la celda.
+     */
+    public void placeRobot() {
+        this.hasRobot = true;
     }
 
-    public int[][] getStores() {
-        return stores;
+    /**
+     * Elimina el robot de la celda.
+     */
+    public void removeRobot() {
+        this.hasRobot = false;
     }
 
-    public int[][] getRobots() {
-        return robots;
+    /**
+     * Coloca una tienda en la celda.
+     */
+    public void placeStore() {
+        this.hasStore = true;
     }
 
-    public void placeStore(int location, int tenges) {
-        // Método vacío: Implementar la lógica para colocar una tienda en una ubicación específica
+    /**
+     * Elimina la tienda de la celda.
+     */
+    public void removeStore() {
+        this.hasStore = false;
     }
 
-    public void removeStore(int location) {
-        // Método vacío: Implementar la lógica para eliminar una tienda de una ubicación específica
+    /**
+     * Verifica si la celda contiene un robot.
+     *
+     * @return {@code true} si hay un robot, {@code false} en caso contrario.
+     */
+    public boolean hasRobot() {
+        return hasRobot;
     }
 
-    public void placeRobot(int location) {
-        // Método vacío: Implementar la lógica para colocar un robot en una ubicación específica
+    /**
+     * Verifica si la celda contiene una tienda.
+     *
+     * @return {@code true} si hay una tienda, {@code false} en caso contrario.
+     */
+    public boolean hasStore() {
+        return hasStore;
     }
 
-    public void removeRobot(int location) {
-        // Método vacío: Implementar la lógica para eliminar un robot de una ubicación específica
+    /**
+     * Mueve la celda (y todos sus elementos gráficos) en una dirección dada.
+     *
+     * @param direction dirección a mover: "up", "down", "left" o "right".
+     */
+    public void moveTo(String direction) {
+        int step = 45; // tamaño de la casilla en píxeles
+        int dx = 0;
+        int dy = 0;
+    
+        switch (direction.toLowerCase()) {
+            case "up":    dy = -step; break;
+            case "down":  dy = step;  break;
+            case "left":  dx = -step; break;
+            case "right": dx = step;  break;
+            default:
+                System.out.println("Dirección no válida. Usa: up, down, left, right");
+                return;
+        }
+    
+        // 🔹 Actualizar posiciones lógicas
+        positionX += dx;
+        positionY += dy;
+    
+        // 🔹 Mover representaciones gráficas
+        background.moveHorizontal(dx);
+        background.moveVertical(dy);
+    
+        cell.moveHorizontal(dx);
+        cell.moveVertical(dy);
     }
-
-    public void moveRobot(int location, int meters) {
-        // Método vacío: Implementar la lógica para mover un robot a una nueva ubicación
-    }
-
-    public void resupplyStores() {
-        // Método vacío: Implementar la lógica para reabastecer las tiendas con tenges
-    }
-
-    public void returnRobots() {
-        // Método vacío: Implementar la lógica para devolver los robots a sus ubicaciones originales
-    }
-
-    public void reboot() {
-        // Método vacío: Implementar la lógica para reiniciar el sistema
-    }
-
-    public int profit() {
-        // Método vacío: Implementar la lógica para calcular el beneficio total
-        return 0;
-    }
-
-    public int[][] stores() {
-        // Método vacío: Retorna la matriz de tiendas
-        return stores;
-    }
-
-    public int[][] robots() {
-        // Método vacío: Retorna la matriz de robots
-        return robots;
-    }
-
+    
+    /**
+     * Hace visible gráficamente la celda (fondo, celda, y cualquier objeto si existe).
+     */
     public void makeVisible() {
-        // Método vacío: Implementar la lógica para hacer visible la SilkRoad
+        background.makeVisible();
+        cell.makeVisible();
     }
 
+    /**
+     * Hace invisible gráficamente la celda (fondo, celda, y cualquier objeto si existe).
+     */
     public void makeInvisible() {
-        // Método vacío: Implementar la lógica para hacer invisible la SilkRoad
+        background.makeInvisible();
+        cell.makeInvisible();
+    }
+    
+    /**
+     * Devuelve la posición X de la celda.
+     *
+     * @return posición X en el tablero.
+     */
+    public int getPositionX() {
+        return positionX;
+    }
+    
+    /**
+     * Devuelve la posición Y de la celda.
+     *
+     * @return posición Y en el tablero.
+     */
+    public int getPositionY() {
+        return positionY;
+    }
+    
+    /**
+     * Devuelve el color de la celda.
+     *
+     * @return color asociado a la celda.
+     */
+    public String getColor() {
+        return color;
     }
 
-    public void finish() {
-        // Método vacío: Implementar la lógica para finalizar el proceso o la simulación
-    }
+    /**
+     * Reubica la celda en coordenadas absolutas nuevas.
+     * Esto mueve todos los elementos gráficos asociados.
+     *
+     * @param x nueva coordenada X.
+     * @param y nueva coordenada Y.
+     */
+    public void setPosition(int x, int y) {
+        int dx = x - this.positionX;
+        int dy = y - this.positionY;
 
-    public boolean ok() {
-        // Método vacío: Implementar la lógica para verificar el estado correcto
-        return true;
+        this.positionX = x;
+        this.positionY = y;
+
+        // Mover todo gráficamente
+        background.moveHorizontal(dx);
+        background.moveVertical(dy);
+
+        cell.moveHorizontal(dx);
+        cell.moveVertical(dy);
     }
 }
