@@ -1,0 +1,27 @@
+public class ProgressBar {
+    private Rectangle bar;
+    private int maxWidth;
+    private int height;
+    private int x;
+    private int y;
+
+    public ProgressBar(int x, int y, int maxWidth, int height) {
+        this.x = x;
+        this.y = y;
+        this.maxWidth = maxWidth;
+        this.height = height;
+        bar = new Rectangle();
+        bar.changeColor("green");
+        bar.changeSize(0, height);
+        bar.setPosition(x, y);
+        bar.makeVisible();
+    }
+
+    public void setProgress(double percent) {
+        int newWidth = (int)(maxWidth * percent);
+        bar.changeSize(newWidth, height);
+    }
+
+    public void makeVisible() { bar.makeVisible(); }
+    public void makeInvisible() { bar.makeInvisible(); }
+}
