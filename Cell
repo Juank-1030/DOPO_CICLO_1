@@ -170,7 +170,6 @@ public class Cell {
         this.positionX = x;
         this.positionY = y;
 
-        // Mover todo gráficamente
         background.moveHorizontal(dx);
         background.moveVertical(dy);
 
