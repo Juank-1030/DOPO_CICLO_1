@@ -17,8 +17,8 @@ public class Store {
      * @param size tamaño de la tienda
      */
     public Store() {
-        this.positionX = 24;
-        this.positionY = 15;
+        this.positionX = 54;
+        this.positionY = 45;
         this.sizeRectangle = 20;
         this.sizeTriangle = 20;
         this.color = getRandomColor();  // Asignamos un color aleatorio
@@ -51,19 +51,19 @@ public class Store {
         return colors[rand.nextInt(colors.length)];
     }
 
-    /**
-     * Mueve la tienda a una nueva posición.
-     * @param newX nueva posición X para la tienda
-     * @param newY nueva posición Y para la tienda
-     */
-    public void moveTo(int newX, int newY) {
-        positionX = newX;  // Actualizar la posición X de la tienda
-        positionY = newY;  // Actualizar la posición Y de la tienda
-
-        // Mover las partes de la tienda a las nuevas posiciones
-        base.setPosition(positionX, positionY);  // Mover la base de la tienda
-        roof.setPosition(positionX + 10, positionY - sizeTriangle / 2);  // Mover el techo de la tienda
+    public void moveTo(int x, int y) {
+        positionX = x;  // Actualizamos la posición X
+        positionY = y;  // Actualizamos la posición Y
+    
+        // Mover la base y el techo de la tienda
+        base.setPosition(positionX, positionY);
+        roof.setPosition(positionX + 10, positionY - sizeTriangle / 2);
+    
+        // Hacer visible la tienda en la nueva posición
+        base.makeVisible();
+        roof.makeVisible();
     }
+
 
     /**
      * Hace que la tienda sea visible.
@@ -80,4 +80,29 @@ public class Store {
         base.makeInvisible();
         roof.makeInvisible();
     }
+    
+    public int getX() {
+        return positionX;
+    }
+    
+    
+    public int getY() {
+        return positionY;
+    }
+    
+    public void setPosition(int x, int y) {
+        int dx = x - this.positionX;
+        int dy = y - this.positionY;
+
+        this.positionX = x;
+        this.positionY = y;
+
+        base.moveHorizontal(dx);
+        base.moveVertical(dy);
+
+        roof.moveHorizontal(dx);
+        roof.moveVertical(dy);
+    }
+    
+    
 }
