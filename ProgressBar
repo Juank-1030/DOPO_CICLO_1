@@ -1,27 +1,82 @@
 public class ProgressBar {
-    private Rectangle bar;
+    private Rectangle bgBar;      // fondo gris de la barra
+    private Rectangle bar;        // barra azul progreso
+    private Circle leftEnd;       // extremo izquierdo redondeado
+    private Circle rightEnd;      // extremo derecho redondeado
     private int maxWidth;
     private int height;
     private int x;
     private int y;
+    private double progress;      // de 0.0 a 1.0
 
     public ProgressBar(int x, int y, int maxWidth, int height) {
         this.x = x;
         this.y = y;
         this.maxWidth = maxWidth;
         this.height = height;
+        this.progress = 0.0;
+
+        int radius = height; // círculos de mismo alto que la barra
+
+        // Fondo gris
+        bgBar = new Rectangle();
+        bgBar.changeColor("lightgray");
+        bgBar.changeSize(height, maxWidth); // alto, ancho
+        bgBar.setPosition(x, y);
+        bgBar.makeVisible();
+
+        // Barra azul (progreso)
         bar = new Rectangle();
-        bar.changeColor("green");
-        bar.changeSize(0, height);
+        bar.changeColor("blue");
+        bar.changeSize(height, 0); // inicia en cero
         bar.setPosition(x, y);
         bar.makeVisible();
+
+        // Extremos redondeados
+        leftEnd = new Circle();
+        leftEnd.changeColor("lightgray");
+        leftEnd.changeSize(radius);
+        leftEnd.setPosition(x - radius / 2, y);
+        leftEnd.makeVisible();
+
+        rightEnd = new Circle();
+        rightEnd.changeColor("lightgray");
+        rightEnd.changeSize(radius);
+        rightEnd.setPosition(x + maxWidth - radius / 2, y);
+        rightEnd.makeVisible();
     }
 
     public void setProgress(double percent) {
-        int newWidth = (int)(maxWidth * percent);
-        bar.changeSize(newWidth, height);
+        // percent entre 0.0 y 1.0
+        this.progress = Math.max(0.0, Math.min(1.0, percent));
+        int newWidth = (int)(maxWidth * progress);
+
+        // Actualizar barra azul
+        bar.changeSize(height, newWidth);
+
+        // Ajustar círculo derecho al borde actual de la barra azul
+        int radius = height;
+        int blueEndX = x + newWidth - radius / 2;
+        if (newWidth > 0) {
+            rightEnd.setPosition(blueEndX, y);
+            rightEnd.changeColor("blue");
+        } else {
+            rightEnd.setPosition(x + maxWidth - radius / 2, y);
+            rightEnd.changeColor("lightgray");
+        }
     }
 
-    public void makeVisible() { bar.makeVisible(); }
-    public void makeInvisible() { bar.makeInvisible(); }
+    public void makeVisible() {
+        bgBar.makeVisible();
+        bar.makeVisible();
+        leftEnd.makeVisible();
+        rightEnd.makeVisible();
+    }
+
+    public void makeInvisible() {
+        bgBar.makeInvisible();
+        bar.makeInvisible();
+        leftEnd.makeInvisible();
+        rightEnd.makeInvisible();
+    }
 }
