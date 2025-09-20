@@ -4,25 +4,28 @@ public class Road {
     private ArrayList<Cell> cells;
     private int length;
     private int[][] positions;
+    private Robot robot;
+    private Store store;
+    
 
     public Road(int length) {
         this.cells = new ArrayList<>();
-        this.length = length;
-        this.positions = new int[length][2];
+        this.length = length + 1;
+        this.positions = new int[this.length][2];
         drawSpiral();
     }
 
-    // Dibuja una espiral tipo "caracol" dejando espacio entre vueltas
     public void drawSpiral() {
         Canvas canvas = Canvas.getCanvas();
         int canvasWidth = canvas.getSizeCanvasW();
         int canvasHeight = canvas.getSizeCanvasH();
     
-        int cellSize = 15;  // Tamaño de la celda
-        int gap = 30;       // Espacio entre celdas
+        int cellSize = 15;
+        int gap = 31;
     
-        int step = cellSize + gap;  // Distancia total que ocupará cada celda (celda + espacio)
-        int x0 = gap, y0 = gap;     // Posición inicial
+        int step = cellSize + gap;
+        int x0 = gap, y0 = gap;
+    
         int maxCols = (canvasWidth - gap) / step;
         int maxRows = (canvasHeight - gap) / step;
     
@@ -31,55 +34,103 @@ public class Road {
         int i = 0;
     
         while (i < length && left <= right && top <= bottom) {
-            // Top row: izquierda a derecha
-            for (int col = left-1; col <= right && i < length; col++) {
+            // 0: top row (izquierda -> derecha)
+            for (int col = left - 1; col <= right && i < length; col++) {
                 int x = x0 + col * step;
                 int y = y0 + top * step;
-                addCell(x, y);  // Agregar la celda
-                storePosition(i, x, y);
+                addCell(x, y);
+                cellPosition(i, x, y);
                 i++;
             }
-            top += 2;  // Aumenta el espacio en la parte superior
+            top += 2;
     
-            // Right column: arriba a abajo
+            // 1: right column (arriba -> abajo)
             for (int row = top - 1; row <= bottom && i < length; row++) {
                 int x = x0 + right * step;
                 int y = y0 + row * step;
-                addCell(x, y);  // Agregar la celda
-                storePosition(i, x, y);
+                addCell(x, y);
+                cellPosition(i, x, y);
                 i++;
             }
-            right -= 2;  // Aumenta el espacio en la columna derecha
+            right -= 2;
     
-            // Bottom row: derecha a izquierda
+            // 2: bottom row (derecha -> izquierda)
             for (int col = right + 1; col >= left && i < length; col--) {
                 int x = x0 + col * step;
                 int y = y0 + bottom * step;
-                addCell(x, y);  // Agregar la celda
-                storePosition(i, x, y);
+                addCell(x, y);
+                cellPosition(i, x, y);
                 i++;
             }
-            bottom -= 2;  // Aumenta el espacio en la parte inferior
+            bottom -= 2;
     
-            // Left column: abajo a arriba
+            // 3: left column (abajo -> arriba)
             for (int row = bottom + 1; row >= top && i < length; row--) {
                 int x = x0 + left * step;
                 int y = y0 + row * step;
-                addCell(x, y);  // Agregar la celda
-                storePosition(i, x, y);
+                addCell(x, y);
+                cellPosition(i, x, y);
                 i++;
             }
-            left += 2;  // Aumenta el espacio en la columna izquierda
+            left += 2;
         }
     }
+
     
-    // Método para almacenar la posición de cada celda en la matriz positions
-    private void storePosition(int index, int x, int y) {
-        if (index < length) {
-            positions[index][0] = x;
-            positions[index][1] = y;
+    public void assignObjectPosition(int location, String objectType) {
+        // Obtener las coordenadas de la celda
+        int cellX = positions[location][0];
+        int cellY = positions[location][1];
+    
+        System.out.println("Assigning object: " + objectType + " to location " + location + " -> x: " + cellX + ", y: " + cellY);
+    
+        if (objectType.equals("store")) {
+            if (store == null) store = new Store();
+    
+            // Calcular el offset relativo de Store respecto a la celda de referencia
+            int offsetX = store.getX() - 30; // 30 = posición X de la primera celda
+            int offsetY = store.getY() - 30; // 30 = posición Y de la primera celda
+    
+            // Posicionar Store dentro de la celda actual
+            int storeX = cellX + offsetX;
+            int storeY = cellY + offsetY;
+    
+            store.moveTo(storeX, storeY);
+    
+        } else if (objectType.equals("robot")) {
+            if (robot == null) robot = new Robot();
+    
+            // Calcular el offset relativo de Robot respecto a la celda de referencia
+            int offsetX = robot.getX() - 30;
+            int offsetY = robot.getY() - 30;
+    
+            // Posicionar Robot dentro de la celda actual
+            int robotX = cellX + offsetX;
+            int robotY = cellY + offsetY;
+    
+            robot.moveTo(robotX, robotY);
         }
     }
+
+
+
+
+     public void moveRobotVisual(int oldLocation, int newLocation, Robot robot) {
+        // Verificar límites
+        if (newLocation < 0 || newLocation >= length) {
+            System.out.println("Movimiento inválido: fuera de límites.");
+            return;
+        }
+    
+        // Obtener coordenadas de la nueva celda
+        int x = positions[newLocation][0];
+        int y = positions[newLocation][1];
+    
+        // Mover el robot a la nueva celda (con ajustes visuales)
+        robot.moveTo(x - 39, y + 29);
+    }
+
+
 
     // Método para agregar la celda a la lista y hacerla visible
     private void addCell(int px, int py) {
@@ -89,8 +140,25 @@ public class Road {
         cells.add(cell);  // Agregarla a la lista de celdas
     }
 
-    // Método para obtener la información de una casilla específica
-    public String getCellInfo(int index) {
+    // Método para almacenar la posición de cada celda en la matriz positions
+    private void cellPosition(int index, int x, int y) {
+        if (index >= 0 && index < positions.length) {
+            positions[index][0] = x;
+            positions[index][1] = y;
+        }
+    }
+
+    // Método para obtener todas las celdas creadas
+    public ArrayList<Cell> getCells() {
+        return cells;
+    }
+
+    // Método para obtener la matriz de posiciones
+    public int[][] getPositions() {
+        return positions;
+    }
+    
+     public String getCellInfo(int index) {
         if (index >= 0 && index < length) {
             int x = positions[index][0];
             int y = positions[index][1];
@@ -98,7 +166,7 @@ public class Road {
         }
         return "Índice fuera de rango";
     }
-    
+
     // Método para obtener la posición X de una celda en una longitud específica
     public int getCellX(int index) {
         if (index >= 0 && index < length) {
@@ -114,14 +182,15 @@ public class Road {
         }
         return -1;  // Retorna -1 si el índice está fuera de rango
     }
-
-    // Método para obtener todas las celdas creadas
-    public ArrayList<Cell> getCells() {
-        return cells;
+    
+    // Método para asignar la tienda (si no ha sido asignada)
+    public void assignStore(Store store) {
+        this.store = store;
     }
 
-    // Método para obtener la matriz de posiciones
-    public int[][] getPositions() {
-        return positions;
+    // Método para asignar el robot (si no ha sido asignado)
+    public void assignRobot(Robot robot) {
+        this.robot = robot;
     }
 }
+
