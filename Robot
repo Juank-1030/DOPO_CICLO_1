@@ -12,23 +12,12 @@ public class Robot {
 
     public Robot() {
         this.size = 15;
-        this.positionX = 6; 
-        this.positionY = 28;
+        this.positionX = 36; 
+        this.positionY = 58;
         this.color = getRandomColor();
 
-        // Asignar color de ojos y boca según el color del robot
         String eyeAndMouthColor = (color.equals("black") || color.equals("brown")) ? "white" : "black";
-
-        drawRobot(eyeAndMouthColor);
-    }
-
-    private String getRandomColor() {
-        String[] colors = {"red", "blue", "green", "yellow", "magenta", "cyan", "black", "brown", "purple", "orange"};
-        Random rand = new Random();
-        return colors[rand.nextInt(colors.length)];
-    }
-
-    private void drawRobot(String eyeAndMouthColor) {
+        
         robotHead = new Rectangle();
         robotHead.changeColor(color);
         robotHead.changeSize(size, size);
@@ -55,14 +44,30 @@ public class Robot {
         mouth.makeVisible();
     }
 
-    public void move(int deltaX, int deltaY) {
-        positionX += deltaX;
-        positionY += deltaY;
+    private String getRandomColor() {
+        String[] colors = {"red", "blue", "green", "yellow", "magenta", "cyan", "black", "brown", "purple", "orange"};
+        Random rand = new Random();
+        return colors[rand.nextInt(colors.length)];
+    }
+
+
+    public void moveTo(int x, int y) {
+        positionX = x;  // Actualizamos la posición X
+        positionY = y;  // Actualizamos la posición Y
+    
+        // Mover todas las partes del robot (cabeza, ojos, boca)
         robotHead.setPosition(positionX, positionY);
         leftEye.setPosition(positionX + size - 14, positionY + size / 4);
         rightEye.setPosition(positionX + size - 4, positionY + size / 4);
-        mouth.setPosition(positionX + size / 6, positionY + size - (size / 10)-1);
+        mouth.setPosition(positionX + size / 6, positionY + size - (size / 10) - 1);
+    
+        // Hacer visible todas las partes del robot
+        robotHead.makeVisible();
+        leftEye.makeVisible();
+        rightEye.makeVisible();
+        mouth.makeVisible();
     }
+
 
     public void makeVisible() {
         robotHead.makeVisible();
