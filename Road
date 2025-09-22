@@ -123,8 +123,8 @@ public class Road {
         }
     
         // Obtener coordenadas de la nueva celda
-        int x = positions[newLocation][0];
-        int y = positions[newLocation][1];
+        int x = positions[newLocation+1][0];
+        int y = positions[newLocation+1][1];
     
         // Mover el robot a la nueva celda (con ajustes visuales)
         robot.moveTo(x - 39, y + 29);
