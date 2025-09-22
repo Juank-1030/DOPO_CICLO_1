@@ -21,6 +21,7 @@ public class SilkRoad {
     private int storeCount = 0;
     private int robotCount = 0;
     private Robot[] robotRefs; // referencia por casilla al robot que hay ahí (null si no hay)
+    private Store[] storeRefs;
 
 
     // Constructor que recibe la longitud del camino
@@ -31,6 +32,7 @@ public class SilkRoad {
         this.robots = new int[length+1][2];
         // asumimos que positions ya fue creado como new int[length + 1][2]
         this.robotRefs = new Robot[this.positions.length];
+        this.storeRefs = new Store[this.positions.length];
 
         this.road = new Road(length);
         int[][] roadPos = road.getPositions();
@@ -40,9 +42,6 @@ public class SilkRoad {
         }
     }
     
-    private int[][] getPositions() {
-        return positions;
-    }
     
     public int getLength() {
         return length;
@@ -71,27 +70,30 @@ public class SilkRoad {
 
     
     public void placeStore(int location, int tenges) {
-        if (location >= 0 && location < positions.length) {
-            // Se asigna la posición de la tienda en la matriz de posiciones
-            int x = positions[location][0];
-            int y = positions[location][1];
-    
-            // Guardamos la cantidad de tenges de la tienda en la matriz
-            stores[location][0] = location + 1;  // Asignar la ubicación de la tienda
-            stores[location][1] = tenges;    // Asignar los tenges de la tienda
-            
-            System.out.println("Tienda colocada en: (" + x + ", " + y + "), con " + tenges + " tenges.");
-    
-            // Instanciamos el objeto Store
-            store = new Store();
-            road.assignStore(store);  // Asignamos la tienda al road
-    
-            // Llamamos a moveObject para mover la tienda a la posición correcta
-            road.assignObjectPosition(location, "store");
+        if (location < 0 || location >= positions.length) {
+            System.out.println("Índice de casilla inválido: " + location);
+            return;
         }
+        if (storeRefs[location] != null) {
+            System.out.println("Ya existe una tienda en la casilla " + location);
+            return;
+        }
+    
+        // crear y registrar la tienda
+        Store s = new Store();
+        storeRefs[location] = s;
+    
+        // guardar datos en la matriz de stores
+        stores[location][0] = location + 1;  
+        stores[location][1] = tenges;
+        
+        road.assignStore(s);
+        // pedirle a Road que la dibuje
+        road.assignObjectPosition(location, "store");
+    
+        System.out.println("Tienda colocada en la casilla " + location + 
+                           " con " + tenges + " tenges.");
     }
-
-
 
 
     // Método para colocar el robot en la celda indicada por la location
@@ -110,7 +112,7 @@ public class SilkRoad {
         robotRefs[location] = r;
     
         // actualizar la matriz de robots (si la usas para llevar info)
-        robots[location][0] = location;
+        robots[location][0] = location+1;
         robots[location][1] = 0; // tenges iniciales
     
         // mantener compatibilidad con Road (si tu Road espera recibir la referencia)
@@ -122,33 +124,24 @@ public class SilkRoad {
 
 
     public void moveRobot(int location, int meters) {
-        // validar que la celda origen existe
         if (location < 0 || location >= robotRefs.length) {
             System.out.println("Índice origen inválido: " + location);
             return;
         }
-    
         Robot r = robotRefs[location];
         if (r == null) {
             System.out.println("No hay robot en la casilla " + location);
             return;
         }
-    
         int newLocation = location + meters;
-    
-        // verificar límites
         if (newLocation < 0 || newLocation >= robotRefs.length) {
             System.out.println("Movimiento inválido: fuera de límites.");
             return;
         }
-    
-        // evitar colisiones (opcional)
         if (robotRefs[newLocation] != null) {
             System.out.println("Ya existe un robot en la casilla destino " + newLocation);
             return;
         }
-    
-        // 1. quitar de la casilla actual
         robotRefs[location] = null;
         robots[location][0] = -1; // convención: -1 = sin robot
         robots[location][1] = 0;
@@ -193,13 +186,33 @@ public class SilkRoad {
 
 
     public void removeStore(int location) {
-        // Método vacío: Implementar la lógica para eliminar una tienda de una ubicación específica
+        if (location < 0 || location >= stores.length) {
+            System.out.println("Índice de tienda inválido: " + location);
+            return;
+        }
+        if (storeRefs != null && storeRefs[location] != null) {
+            storeRefs[location].makeInvisible();
+            storeRefs[location] = null;
+        }
+        stores[location][0] = 0;
+        stores[location][1] = 0;
+        System.out.println("Tienda eliminada de la casilla " + location);
     }
+
 
     public void removeRobot(int location) {
-        // Método vacío: Implementar la lógica para eliminar un robot de una ubicación específica
+        if (location < 0 || location >= robotRefs.length) {
+            System.out.println("Índice de robot inválido: " + location);
+            return;
+        }
+        if (robotRefs[location] != null) {
+            robotRefs[location].makeInvisible();
+            robotRefs[location] = null;
+        }
+        robots[location][0] = 0;
+        robots[location][1] = 0;
+        System.out.println("Robot eliminado de la casilla " + location);
     }
-
 
 
 
