@@ -1,82 +1,69 @@
 public class ProgressBar {
-    private Rectangle bgBar;      // fondo gris de la barra
-    private Rectangle bar;        // barra azul progreso
-    private Circle leftEnd;       // extremo izquierdo redondeado
-    private Circle rightEnd;      // extremo derecho redondeado
-    private int maxWidth;
-    private int height;
-    private int x;
-    private int y;
-    private double progress;      // de 0.0 a 1.0
+    // --- Parámetros de ubicación y tamaño por defecto ---
+    private static final int DEFAULT_X = 20;    // Más a la izquierda (ajusta si lo quieres más a la derecha)
+    private static final int DEFAULT_Y = 160;   // MÁS ABAJO (ajusta este valor para moverla verticalmente)
+    private static final int DEFAULT_WIDTH = 50; // Ancho de la barra
+    private static final int DEFAULT_HEIGHT = 300; // Alto total
 
-    public ProgressBar(int x, int y, int maxWidth, int height) {
-        this.x = x;
-        this.y = y;
-        this.maxWidth = maxWidth;
-        this.height = height;
-        this.progress = 0.0;
+    private Rectangle bgBar;      // Fondo de la barra
+    private Rectangle bar;        // Barra de progreso (ganancia)
+    private int x, y;             // Esquina superior izquierda
+    private int width, height;    // Dimensiones
+    private int currentProfit;    // Ganancia actual
+    private int maxProfit;        // Ganancia máxima posible
 
-        int radius = height; // círculos de mismo alto que la barra
+    /**
+     * Crea una ProgressBar vertical en posición fija y tamaño fijo.
+     * No requiere parámetros.
+     */
+    public ProgressBar() {
+        this.x = DEFAULT_X;
+        this.y = DEFAULT_Y;
+        this.width = DEFAULT_WIDTH;
+        this.height = DEFAULT_HEIGHT;
+        this.currentProfit = 0;
+        this.maxProfit = 1; // Evita división por cero
 
         // Fondo gris
         bgBar = new Rectangle();
         bgBar.changeColor("lightgray");
-        bgBar.changeSize(height, maxWidth); // alto, ancho
+        bgBar.changeSize(height, width); // alto, ancho
         bgBar.setPosition(x, y);
         bgBar.makeVisible();
 
         // Barra azul (progreso)
         bar = new Rectangle();
         bar.changeColor("blue");
-        bar.changeSize(height, 0); // inicia en cero
-        bar.setPosition(x, y);
+        bar.changeSize(0, width); // empieza vacía
+        bar.setPosition(x, y + height); // empieza desde abajo
         bar.makeVisible();
-
-        // Extremos redondeados
-        leftEnd = new Circle();
-        leftEnd.changeColor("lightgray");
-        leftEnd.changeSize(radius);
-        leftEnd.setPosition(x - radius / 2, y);
-        leftEnd.makeVisible();
-
-        rightEnd = new Circle();
-        rightEnd.changeColor("lightgray");
-        rightEnd.changeSize(radius);
-        rightEnd.setPosition(x + maxWidth - radius / 2, y);
-        rightEnd.makeVisible();
     }
 
-    public void setProgress(double percent) {
-        // percent entre 0.0 y 1.0
-        this.progress = Math.max(0.0, Math.min(1.0, percent));
-        int newWidth = (int)(maxWidth * progress);
+    /**
+     * Actualiza el progreso de la barra.
+     * @param currentProfit ganancia actual (número >= 0)
+     * @param maxProfit ganancia máxima posible (número > 0)
+     */
+    public void setProgress(int currentProfit, int maxProfit) {
+        this.currentProfit = Math.max(0, currentProfit);
+        this.maxProfit = Math.max(1, maxProfit); // Nunca 0
+        double frac = (double)this.currentProfit / this.maxProfit;
+        frac = Math.max(0.0, Math.min(1.0, frac)); // Clamp entre 0 y 1
 
-        // Actualizar barra azul
-        bar.changeSize(height, newWidth);
+        int progHeight = (int)(height * frac);
 
-        // Ajustar círculo derecho al borde actual de la barra azul
-        int radius = height;
-        int blueEndX = x + newWidth - radius / 2;
-        if (newWidth > 0) {
-            rightEnd.setPosition(blueEndX, y);
-            rightEnd.changeColor("blue");
-        } else {
-            rightEnd.setPosition(x + maxWidth - radius / 2, y);
-            rightEnd.changeColor("lightgray");
-        }
+        // La barra debe crecer de abajo hacia arriba
+        bar.changeSize(progHeight, width);
+        bar.setPosition(x, y + height - progHeight);
     }
 
     public void makeVisible() {
         bgBar.makeVisible();
         bar.makeVisible();
-        leftEnd.makeVisible();
-        rightEnd.makeVisible();
     }
 
     public void makeInvisible() {
         bgBar.makeInvisible();
         bar.makeInvisible();
-        leftEnd.makeInvisible();
-        rightEnd.makeInvisible();
     }
 }
