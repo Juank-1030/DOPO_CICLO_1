@@ -36,7 +36,11 @@ public class SilkRoad {
             this.positions[i][0] = roadPos[i][0];
             this.positions[i][1] = roadPos[i][1];
         }
+        this.progressBar = new ProgressBar(true);        
+        this.profit = 0;        
+        this.maxProfit = 0;
         this.visible = true;
+        this.lastOperationOK = true;
     }
     
     
@@ -83,14 +87,17 @@ public class SilkRoad {
         // guardar datos en la matriz de stores
         stores[location][0] = location;  
         stores[location][1] = tenges;
+        maxProfit += tenges;
+        updateProgressBar();
         
         if (this.visible && road != null) {
             road.assignStore(s);
             road.assignObjectPosition(location, "store");
             s.makeVisible();
         }
-        
+        transferTengesIfCoincide();
         System.out.println("Tienda colocada en la casilla " + location + " con " + tenges + " tenges.");
+        lastOperationOK = true;
     }
 
 
@@ -121,6 +128,8 @@ public class SilkRoad {
         }
     
         System.out.println("Robot colocado en la casilla " + location);
+        transferTengesIfCoincide();
+        lastOperationOK = true;
     }
 
 
@@ -159,36 +168,40 @@ public class SilkRoad {
         if (this.visible && road != null) {
             road.assignRobot(r); // por seguridad, aseguramos que road conozca la instancia
             road.moveRobotVisual(location, newLocation, r);
-        } else {
-            
         }
         
         System.out.println("Robot movido de la casilla " + location + " a la casilla " + newLocation);
+        transferTengesIfCoincide();
+        lastOperationOK = true;
     }
 
-
-
-
     // Método privado que revisa si algún robot coincide con alguna tienda
+    // y transfiere tenges, actualizando la ProgressBar automáticamente
     private void transferTengesIfCoincide() {
-        for (int i = 0; i < robots.length; i++) {
-            int robotLocation = robots[i][0];  // Ubicación actual del robot
+        for (int i = 0; i < robotRefs.length; i++) {
+            Robot r = robotRefs[i];
+            if (r == null) continue;
     
-            for (int j = 0; j < stores.length; j++) {
-                int storeLocation = stores[j][0];  // Ubicación de la tienda
+            Store s = storeRefs[i];
+            if (s != null && stores[i][1] > 0) {
+                int collected = stores[i][1];   // Tengues a recoger
+                robots[i][1] += collected;      // Sumarlos al robot
+                profit += collected;            // Sumar a la ganancia total
+                stores[i][1] = 0;               // Vaciar la tienda
     
-                // Si coinciden en la misma celda
-                if (robotLocation == storeLocation && stores[j][1] > 0) {
-                    // Transferir los tenges al robot
-                    robots[i][1] += stores[j][1];
+                // Actualizar la barra de progreso
+                updateProgressBar();
     
-                    // Dejar la tienda en 0
-                    stores[j][1] = 0;
-    
-                    System.out.println("Robot en celda " + robotLocation + " tomó " +
-                                       robots[i][1] + " tenges de la tienda en la misma celda.");
-                }
+                System.out.println("Robot en la celda " + i + 
+                    " tomó " + collected + " tenges de la tienda en la misma celda.");
             }
+        }
+    }
+
+    
+    private void updateProgressBar() {
+        if (progressBar != null) {
+            progressBar.setProgress(profit, Math.max(1, maxProfit)); // evita división por cero
         }
     }
 
@@ -203,9 +216,12 @@ public class SilkRoad {
             storeRefs[location].makeInvisible();
             storeRefs[location] = null;
         }
+        maxProfit -= stores[location][1]; 
         stores[location][0] = 0;
         stores[location][1] = 0;
+        updateProgressBar(); 
         System.out.println("Tienda eliminada de la casilla " + location);
+        lastOperationOK = true;
     }
 
 
@@ -221,12 +237,25 @@ public class SilkRoad {
         robots[location][0] = 0;
         robots[location][1] = 0;
         System.out.println("Robot eliminado de la casilla " + location);
+        lastOperationOK = true;
     }
 
 
 
-    public void resupplyStores() {
-        // Método vacío: Implementar la lógica para reabastecer las tiendas con tenges
+    public void resupplyStores() {        
+        // Reabastece todas las tiendas a 10 tenges (o el valor que desees)        
+        for (int i = 0; i < stores.length; i++) {            
+            if (storeRefs[i] != null) {       
+                int diff = 10 - stores[i][1];                
+                if (diff > 0) {                    
+                    stores[i][1] = 10;                    
+                    maxProfit += diff;                
+                }            
+            }        
+        }        
+        updateProgressBar();        
+        System.out.println("Tiendas reabastecidas.");        
+        lastOperationOK = true;    
     }
 
     
@@ -260,11 +289,16 @@ public class SilkRoad {
             
     
             System.out.println("Robot devuelto de " + i + " a su posición original " + originIndex);
+            lastOperationOK = true;
         }
     }
 
-    // SilkRoad.java
     public void makeInvisible() {
+        if (!visible) {
+            System.out.println("SilkRoad: ya estaba invisible.");
+            return;
+        }
+    
         if (storeRefs != null) {
             for (Store s : storeRefs) {
                 if (s != null) s.makeInvisible();
@@ -278,41 +312,45 @@ public class SilkRoad {
         }
     
         if (road != null) road.makeInvisible();
+        if (progressBar != null) progressBar.makeInvisible();
     
         visible = false;
         System.out.println("SilkRoad: ahora invisible (solo lógica activa).");
     }
-
-
     
     public void makeVisible() {
+        if (visible) {
+            System.out.println("SilkRoad: ya estaba visible, no se hace nada.");
+            return;
+        }
+    
         if (road != null) road.makeVisible();
     
         if (storeRefs != null) {
-            for (int i = 0; i < storeRefs.length; i++) {
-                Store s = storeRefs[i];
+            for (Store s : storeRefs) {
                 if (s != null) {
+                    // No reposicionar, solo mostrar en la última posición real
                     s.makeVisible();
-                    road.assignStore(s);
-                    road.assignObjectPosition(i, "store");
                 }
             }
         }
     
         if (robotRefs != null) {
-            for (int i = 0; i < robotRefs.length; i++) {
-                Robot r = robotRefs[i];
+            for (Robot r : robotRefs) {
                 if (r != null) {
+                    // Igual: se dibuja donde ya estaba en memoria
                     r.makeVisible();
-                    road.assignRobot(r);
-                    road.moveRobotVisual(i, i, r); // Redibuja en la celda actual
                 }
             }
         }
     
+        if (progressBar != null) progressBar.makeVisible();
+    
         visible = true;
-        System.out.println("SilkRoad: ahora visible y sincronizado.");
+        System.out.println("SilkRoad: ahora visible (manteniendo posiciones actuales).");
     }
+
+
 
 
 
@@ -336,32 +374,45 @@ public class SilkRoad {
                 robots[i][1] = 0;
             }
         }
-        profit = 0;
+        profit = 0;        
+        maxProfit = 0;        
+        updateProgressBar();
         System.out.println("SilkRoad ha sido reiniciado.");
+        lastOperationOK = true;
     }
 
-    public int profit() {
-        // Método vacío: Implementar la lógica para calcular el beneficio total
-        return 0;
+    public int profit() {        
+        return profit;    
     }
 
     public int[][] stores() {
-        // Método vacío: Retorna la matriz de tiendas
         return stores;
     }
 
     public int[][] robots() {
-        // Método vacío: Retorna la matriz de robots
         return robots;
     }
 
 
-    public void finish() {
-        // Método vacío: Implementar la lógica para finalizar el proceso o la simulación
+     public void finish() {        
+         makeInvisible();        
+         Arrays.fill(storeRefs, null);        
+         Arrays.fill(robotRefs, null);        
+         for (int i = 0; i < stores.length; i++) {            
+             stores[i][0] = 0;            
+             stores[i][1] = 0;        
+        }        
+        for (int i = 0; i < robots.length; i++) {            
+            robots[i][0] = 0;            
+            robots[i][1] = 0;        
+        }        
+        profit = 0;        
+        maxProfit = 0;        
+        updateProgressBar();        
+        lastOperationOK = true;    
     }
 
     public boolean ok() {
-        // Método vacío: Implementar la lógica para verificar el estado correcto
-        return true;
+        return lastOperationOK;
     }
 }
