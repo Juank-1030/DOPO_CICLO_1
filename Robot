@@ -100,4 +100,15 @@ public class Robot {
     public int getY() {
         return positionY;
     }
+    
+    public void blink() {
+        // Parpadeo simple: alterna invisible/visible 3 veces (puedes mejorar el efecto)
+        for (int i = 0; i < 3; i++) {
+            makeInvisible();
+            try { Thread.sleep(120); } catch (InterruptedException e) {}
+            makeVisible();
+            try { Thread.sleep(120); } catch (InterruptedException e) {}
+        }
+    }
+
 }
