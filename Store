@@ -9,6 +9,8 @@ public class Store {
 
     private Rectangle base;       // Base de la tienda (rectángulo)
     private Triangle roof;        // Techo de la tienda (triángulo)
+    
+    private boolean isVisible;
 
     /**
      * Constructor para crear la tienda con la posición y tamaño dados.
@@ -16,7 +18,7 @@ public class Store {
      * @param positionY posición Y en el lienzo
      * @param size tamaño de la tienda
      */
-    public Store() {
+    public Store(boolean visible) {
         this.positionX = 54;
         this.positionY = 45;
         this.sizeRectangle = 20;
@@ -28,14 +30,17 @@ public class Store {
         base.changeColor(color); // Usar el color aleatorio
         base.changeSize(sizeRectangle / 2, sizeRectangle);  // La base será el doble de ancha que alta
         base.setPosition(positionX, positionY);
-        base.makeVisible();
+        
 
         // Crear el techo de la tienda (triángulo)
         roof = new Triangle();
         roof.changeColor("brown");  // El color del techo será siempre café
         roof.changeSize(sizeTriangle / 2, sizeTriangle);  // El techo será un triángulo equilátero
         roof.setPosition(positionX + 10, positionY - sizeTriangle / 2);  // Colocarlo sobre la base
-        roof.makeVisible();
+        this.isVisible = visible;
+        if (visible) {
+            makeVisible();
+        }
     }
 
     /**
@@ -69,16 +74,22 @@ public class Store {
      * Hace que la tienda sea visible.
      */
     public void makeVisible() {
-        base.makeVisible();
-        roof.makeVisible();
+        if (!isVisible) {
+            base.makeVisible();
+            roof.makeVisible();
+            isVisible = true;
+        }
     }
 
     /**
      * Hace que la tienda sea invisible.
      */
     public void makeInvisible() {
-        base.makeInvisible();
-        roof.makeInvisible();
+        if (isVisible) {
+            base.makeInvisible();
+            roof.makeInvisible();
+            isVisible = false;
+        }
     }
     
     public int getX() {
