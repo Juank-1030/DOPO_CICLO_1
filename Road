@@ -6,12 +6,13 @@ public class Road {
     private int[][] positions;
     private Robot robot;
     private Store store;
-    
+    private boolean visible;    
 
     public Road(int length) {
         this.cells = new ArrayList<>();
         this.length = length + 1;
         this.positions = new int[this.length][2];
+        this.visible = true;
         drawSpiral();
     }
 
@@ -85,7 +86,7 @@ public class Road {
         System.out.println("Assigning object: " + objectType + " to location " + location + " -> x: " + cellX + ", y: " + cellY);
     
         if (objectType.equals("store")) {
-            if (store == null) store = new Store();
+            if (store == null) store = new Store(visible);
     
             // Calcular el offset relativo de Store respecto a la celda de referencia
             int offsetX = store.getX() - 30; // 30 = posición X de la primera celda
@@ -96,9 +97,11 @@ public class Road {
             int storeY = cellY + offsetY;
     
             store.moveTo(storeX, storeY);
+            
+            
     
         } else if (objectType.equals("robot")) {
-            if (robot == null) robot = new Robot();
+            if (robot == null) robot = new Robot(visible);
     
             // Calcular el offset relativo de Robot respecto a la celda de referencia
             int offsetX = robot.getX() - 30;
@@ -115,18 +118,16 @@ public class Road {
 
 
 
-     public void moveRobotVisual(int oldLocation, int newLocation, Robot robot) {
-        // Verificar límites
+    public void moveRobotVisual(int oldLocation, int newLocation, Robot robot) {
+        if (robot == null) return;
         if (newLocation < 0 || newLocation >= length) {
             System.out.println("Movimiento inválido: fuera de límites.");
             return;
         }
     
-        // Obtener coordenadas de la nueva celda
         int x = positions[newLocation+1][0];
         int y = positions[newLocation+1][1];
     
-        // Mover el robot a la nueva celda (con ajustes visuales)
         robot.moveTo(x - 39, y + 29);
     }
 
@@ -182,6 +183,48 @@ public class Road {
         }
         return -1;  // Retorna -1 si el índice está fuera de rango
     }
+    
+    // Dentro de Road.java
+    public void makeVisible() {
+        visible = true;
+    
+        if (cells != null) {
+            for (Cell c : cells) {
+                if (c != null) {
+                    c.makeVisible();
+                }
+            }
+        }
+    
+        if (store != null) {
+            store.makeVisible();
+        }
+    
+        if (robot != null) {
+            robot.makeVisible();
+        }
+    }
+    
+    public void makeInvisible() {
+        visible = false;
+    
+        if (robot != null) {
+            robot.makeInvisible();
+        }
+        if (store != null) {
+            store.makeInvisible();
+        }
+    
+        if (cells != null) {
+            for (Cell c : cells) {
+                if (c != null) {
+                    c.makeInvisible();
+                }
+            }
+        }
+    }
+
+
     
     // Método para asignar la tienda (si no ha sido asignada)
     public void assignStore(Store store) {
