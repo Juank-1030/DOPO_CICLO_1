@@ -8,7 +8,8 @@ public class Cell {
 
     private Rectangle background; 
     private Rectangle cell;       
-
+    
+    
     /**
      * Construye una celda en el tablero.
      *
