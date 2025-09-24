@@ -104,7 +104,7 @@ public class Road {
             // Calcular el offset relativo de Robot respecto a la celda de referencia
             int offsetX = robot.getX() - 30;
             int offsetY = robot.getY() - 30;
-    
+
             // Posicionar Robot dentro de la celda actual
             int robotX = cellX + offsetX;
             int robotY = cellY + offsetY;
@@ -121,8 +121,14 @@ public class Road {
         }
     
         // Coordenadas exactas de la celda destino
-        int targetX = positions[newLocation][0];
-        int targetY = positions[newLocation][1];
+        int cellX = positions[newLocation][0];
+        int cellY = positions[newLocation][1];
+        
+        int offsetX = robot.getX() - 30; // 30 = posición X de la primera celda
+        int offsetY = robot.getY() - 30;
+        
+        int targetX = cellX + offsetX;
+        int targetY = cellY + offsetY;
     
         System.out.println("Moviendo robot a celda " + newLocation + " -> (" + targetX + "," + targetY + ")");
     
