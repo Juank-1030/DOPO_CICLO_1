@@ -27,7 +27,7 @@ public class Road {
         int step = cellSize + gap;
         int x0 = gap, y0 = gap;
     
-        int maxCols = (canvasWidth - gap) / step;
+        int maxCols = (canvasWidth - 2*gap) / step;
         int maxRows = (canvasHeight - gap) / step;
     
         int left = 1, top = 0;
@@ -82,8 +82,9 @@ public class Road {
         // Obtener las coordenadas de la celda
         int cellX = positions[location][0];
         int cellY = positions[location][1];
+        
     
-        System.out.println("Assigning object: " + objectType + " to location " + location + " -> x: " + cellX + ", y: " + cellY);
+        System.out.println("Assigning  object: " + objectType + " to location " + location + " -> x: " + cellX + ", y: " + cellY);
     
         if (objectType.equals("store")) {
             if (store == null) store = new Store(visible);
@@ -97,9 +98,6 @@ public class Road {
             int storeY = cellY + offsetY;
     
             store.moveTo(storeX, storeY);
-            
-            
-    
         } else if (objectType.equals("robot")) {
             if (robot == null) robot = new Robot(visible);
     
@@ -115,20 +113,21 @@ public class Road {
         }
     }
 
-
-
-
     public void moveRobotVisual(int oldLocation, int newLocation, Robot robot) {
         if (robot == null) return;
-        if (newLocation < 0 || newLocation >= length) {
+        if (newLocation < 0 || newLocation >= positions.length) {
             System.out.println("Movimiento inválido: fuera de límites.");
             return;
         }
     
-        int x = positions[newLocation+1][0];
-        int y = positions[newLocation+1][1];
+        // Coordenadas exactas de la celda destino
+        int targetX = positions[newLocation][0];
+        int targetY = positions[newLocation][1];
     
-        robot.moveTo(x - 39, y + 29);
+        System.out.println("Moviendo robot a celda " + newLocation + " -> (" + targetX + "," + targetY + ")");
+    
+        // Colocar el robot DIRECTAMENTE en esa celda
+        robot.moveTo(targetX, targetY);
     }
 
 
