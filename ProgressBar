@@ -3,7 +3,7 @@ public class ProgressBar {
     private static final int DEFAULT_X = 20;    // Más a la izquierda (ajusta si lo quieres más a la derecha)
     private static final int DEFAULT_Y = 160;   // MÁS ABAJO (ajusta este valor para moverla verticalmente)
     private static final int DEFAULT_WIDTH = 50; // Ancho de la barra
-    private static final int DEFAULT_HEIGHT = 300; // Alto total
+    private static final int DEFAULT_HEIGHT = 500; // Alto total
 
     private Rectangle bgBar;      // Fondo de la barra
     private Rectangle bar;        // Barra de progreso (ganancia)
@@ -11,32 +11,38 @@ public class ProgressBar {
     private int width, height;    // Dimensiones
     private int currentProfit;    // Ganancia actual
     private int maxProfit;        // Ganancia máxima posible
+    private boolean isVisible;
 
     /**
      * Crea una ProgressBar vertical en posición fija y tamaño fijo.
      * No requiere parámetros.
      */
-    public ProgressBar() {
+    public ProgressBar(boolean visible) {
         this.x = DEFAULT_X;
         this.y = DEFAULT_Y;
         this.width = DEFAULT_WIDTH;
         this.height = DEFAULT_HEIGHT;
         this.currentProfit = 0;
         this.maxProfit = 1; // Evita división por cero
-
+        this.isVisible = visible;
+    
         // Fondo gris
         bgBar = new Rectangle();
         bgBar.changeColor("lightgray");
-        bgBar.changeSize(height, width); // alto, ancho
+        bgBar.changeSize(height, width); 
         bgBar.setPosition(x, y);
-        bgBar.makeVisible();
-
-        // Barra azul (progreso)
+    
+        // Barra verde
         bar = new Rectangle();
-        bar.changeColor("blue");
-        bar.changeSize(0, width); // empieza vacía
-        bar.setPosition(x, y + height); // empieza desde abajo
-        bar.makeVisible();
+        bar.changeColor("green");
+        bar.changeSize(0, width); 
+        bar.setPosition(x, y + height);
+    
+        // Hacer visible solo si visible es true
+        if (isVisible) {
+            bgBar.makeVisible();
+            bar.makeVisible();
+        }
     }
 
     /**
@@ -55,15 +61,30 @@ public class ProgressBar {
         // La barra debe crecer de abajo hacia arriba
         bar.changeSize(progHeight, width);
         bar.setPosition(x, y + height - progHeight);
+         if (isVisible) bar.makeVisible();
+        else bar.makeInvisible();
     }
+    
 
+    /**
+     * Hace visible la progress bar.
+     */
     public void makeVisible() {
-        bgBar.makeVisible();
-        bar.makeVisible();
+        if (!isVisible) {
+            bgBar.makeVisible();
+            bar.makeVisible();
+            isVisible = true;
+        }
     }
 
+    /**
+     * Hace invisible la progress bar.
+     */
     public void makeInvisible() {
-        bgBar.makeInvisible();
-        bar.makeInvisible();
+        if (isVisible) {
+            bgBar.makeInvisible();
+            bar.makeInvisible();
+            isVisible = false;
+        }
     }
 }
