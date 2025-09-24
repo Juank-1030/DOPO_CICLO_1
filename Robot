@@ -8,9 +8,10 @@ public class Robot {
     private Rectangle robotHead;       
     private Circle leftEye;            
     private Circle rightEye;           
-    private Rectangle mouth;           
+    private Rectangle mouth;
+    private boolean isVisible;
 
-    public Robot() {
+    public Robot(boolean visible) {
         this.size = 15;
         this.positionX = 36; 
         this.positionY = 58;
@@ -22,26 +23,29 @@ public class Robot {
         robotHead.changeColor(color);
         robotHead.changeSize(size, size);
         robotHead.setPosition(positionX, positionY);
-        robotHead.makeVisible();
+        
 
         int eyeSize = size / 6;
         leftEye = new Circle();
         leftEye.changeColor(eyeAndMouthColor);
         leftEye.changeSize(eyeSize);
         leftEye.setPosition(positionX + size - 14, positionY + size / 4);
-        leftEye.makeVisible();
+        
 
         rightEye = new Circle();
         rightEye.changeColor(eyeAndMouthColor);
         rightEye.changeSize(eyeSize);
         rightEye.setPosition(positionX + size - 4, positionY + size / 4);
-        rightEye.makeVisible();
+        
 
         mouth = new Rectangle();
         mouth.changeColor(eyeAndMouthColor);
         mouth.changeSize(1, 10);
         mouth.setPosition(positionX + size / 6, positionY + size - (size / 10)-1);
-        mouth.makeVisible();
+        this.isVisible = visible;
+        if (visible) {
+            makeVisible();
+        }
     }
 
     private String getRandomColor() {
@@ -70,17 +74,23 @@ public class Robot {
 
 
     public void makeVisible() {
-        robotHead.makeVisible();
-        leftEye.makeVisible();
-        rightEye.makeVisible();
-        mouth.makeVisible();
+        if (!isVisible) {
+            robotHead.makeVisible();
+            leftEye.makeVisible();
+            rightEye.makeVisible();
+            mouth.makeVisible();
+            isVisible = true;
+        }
     }
 
     public void makeInvisible() {
-        robotHead.makeInvisible();
-        leftEye.makeInvisible();
-        rightEye.makeInvisible();
-        mouth.makeInvisible();
+        if (isVisible) {
+            robotHead.makeInvisible();
+            leftEye.makeInvisible();
+            rightEye.makeInvisible();
+            mouth.makeInvisible();
+            isVisible = false;
+        }
     }
 
     // Métodos para obtener la posición actual (útil para movimiento relativo)
