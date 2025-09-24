@@ -7,21 +7,16 @@ public class SilkRoad {
     private int[][] stores;             // Matriz de tiendas {location, tenges}
     private int[][] robots;             // Matriz de robots {location, tenges}
     private int[][] positions;
-    private Store store;
-    private Robot robot;
     private Road road;
     private int profit;
     private boolean lastOperationOK;
     private ProgressBar progressBar;
     private boolean visible;
-    private int cellSize = 50;
-    private int gap = 10; // Puedes ajustar el espacio entre vueltas
     private int maxProfit;
     private int tenges;
-    private int storeCount = 0;
-    private int robotCount = 0;
-    private Robot[] robotRefs; // referencia por casilla al robot que hay ahí (null si no hay)
+    private Robot[] robotRefs; 
     private Store[] storeRefs;
+    private int[] robotOrigins;
 
 
     // Constructor que recibe la longitud del camino
@@ -30,9 +25,10 @@ public class SilkRoad {
         this.positions = new int[length+1][2];
         this.stores = new int[length+1][2];     
         this.robots = new int[length+1][2];
-        // asumimos que positions ya fue creado como new int[length + 1][2]
         this.robotRefs = new Robot[this.positions.length];
         this.storeRefs = new Store[this.positions.length];
+        this.robotOrigins = new int[length+1];
+        Arrays.fill(this.robotOrigins, -1);
 
         this.road = new Road(length);
         int[][] roadPos = road.getPositions();
@@ -40,6 +36,7 @@ public class SilkRoad {
             this.positions[i][0] = roadPos[i][0];
             this.positions[i][1] = roadPos[i][1];
         }
+        this.visible = true;
     }
     
     
@@ -80,19 +77,20 @@ public class SilkRoad {
         }
     
         // crear y registrar la tienda
-        Store s = new Store();
+        Store s = new Store(this.visible);
         storeRefs[location] = s;
     
         // guardar datos en la matriz de stores
-        stores[location][0] = location + 1;  
+        stores[location][0] = location;  
         stores[location][1] = tenges;
         
-        road.assignStore(s);
-        // pedirle a Road que la dibuje
-        road.assignObjectPosition(location, "store");
-    
-        System.out.println("Tienda colocada en la casilla " + location + 
-                           " con " + tenges + " tenges.");
+        if (this.visible && road != null) {
+            road.assignStore(s);
+            road.assignObjectPosition(location, "store");
+            s.makeVisible();
+        }
+        
+        System.out.println("Tienda colocada en la casilla " + location + " con " + tenges + " tenges.");
     }
 
 
@@ -108,16 +106,19 @@ public class SilkRoad {
         }
     
         // crear y registrar el robot (solo aquí)
-        Robot r = new Robot();
+        Robot r = new Robot(this.visible);
         robotRefs[location] = r;
     
         // actualizar la matriz de robots (si la usas para llevar info)
-        robots[location][0] = location+1;
+        robots[location][0] = location;
         robots[location][1] = 0; // tenges iniciales
+        robotOrigins[location] = location;
     
-        // mantener compatibilidad con Road (si tu Road espera recibir la referencia)
-        road.assignRobot(r);
-        road.assignObjectPosition(location, "robot");
+        if (this.visible && road != null) {
+            road.assignRobot(r);
+            road.assignObjectPosition(location, "robot");
+            r.makeVisible();
+        }
     
         System.out.println("Robot colocado en la casilla " + location);
     }
@@ -142,18 +143,26 @@ public class SilkRoad {
             System.out.println("Ya existe un robot en la casilla destino " + newLocation);
             return;
         }
+        int tenges = robots[location][1];
+        int originVal = robotOrigins[location];
+        if (originVal == -1){
+            originVal = location;
+        }
         robotRefs[location] = null;
-        robots[location][0] = -1; // convención: -1 = sin robot
+        robots[location][0] = 0;
         robots[location][1] = 0;
-    
-        // 2. ponerlo en la casilla destino
         robotRefs[newLocation] = r;
         robots[newLocation][0] = newLocation;
-        // robots[newLocation][1] conserva tenges si lo manejas ahí
-    
-        // 3. mover visualmente al robot
-        road.moveRobotVisual(location, newLocation, r);
-    
+        robots[newLocation][1] = tenges;
+        robotOrigins[newLocation] = originVal;
+        
+        if (this.visible && road != null) {
+            road.assignRobot(r); // por seguridad, aseguramos que road conozca la instancia
+            road.moveRobotVisual(location, newLocation, r);
+        } else {
+            
+        }
+        
         System.out.println("Robot movido de la casilla " + location + " a la casilla " + newLocation);
     }
 
@@ -220,12 +229,115 @@ public class SilkRoad {
         // Método vacío: Implementar la lógica para reabastecer las tiendas con tenges
     }
 
+    
     public void returnRobots() {
-        // Método vacío: Implementar la lógica para devolver los robots a sus ubicaciones originales
+        for (int i = 0; i < robotRefs.length; i++) {
+            Robot r = robotRefs[i];
+            if (r == null) continue;
+    
+            int originIndex = robotOrigins[i];
+            if (originIndex == -1 || originIndex == i) continue;
+    
+            int tenges = robots[i][1];
+    
+            // liberar casilla actual
+            robotRefs[i] = null;
+            robots[i][0] = 0;
+            robots[i][1] = 0;
+            robotOrigins[i] = -1;
+    
+            // devolver al origen
+            robotRefs[originIndex] = r;
+            robots[originIndex][0] = originIndex;
+            robots[originIndex][1] = tenges;
+            robotOrigins[originIndex] = originIndex;
+    
+            // mover visual
+            
+            if (this.visible && road != null) {
+                road.moveRobotVisual(i, originIndex, r);
+            }
+            
+    
+            System.out.println("Robot devuelto de " + i + " a su posición original " + originIndex);
+        }
     }
 
+    // SilkRoad.java
+    public void makeInvisible() {
+        if (storeRefs != null) {
+            for (Store s : storeRefs) {
+                if (s != null) s.makeInvisible();
+            }
+        }
+    
+        if (robotRefs != null) {
+            for (Robot r : robotRefs) {
+                if (r != null) r.makeInvisible();
+            }
+        }
+    
+        if (road != null) road.makeInvisible();
+    
+        visible = false;
+        System.out.println("SilkRoad: ahora invisible (solo lógica activa).");
+    }
+
+
+    
+    public void makeVisible() {
+        if (road != null) road.makeVisible();
+    
+        if (storeRefs != null) {
+            for (int i = 0; i < storeRefs.length; i++) {
+                Store s = storeRefs[i];
+                if (s != null) {
+                    s.makeVisible();
+                    road.assignStore(s);
+                    road.assignObjectPosition(i, "store");
+                }
+            }
+        }
+    
+        if (robotRefs != null) {
+            for (int i = 0; i < robotRefs.length; i++) {
+                Robot r = robotRefs[i];
+                if (r != null) {
+                    r.makeVisible();
+                    road.assignRobot(r);
+                    road.moveRobotVisual(i, i, r); // Redibuja en la celda actual
+                }
+            }
+        }
+    
+        visible = true;
+        System.out.println("SilkRoad: ahora visible y sincronizado.");
+    }
+
+
+
+
+
+
     public void reboot() {
-        // Método vacío: Implementar la lógica para reiniciar el sistema
+        for (int i = 0; i < storeRefs.length; i++) {
+            if (storeRefs[i] != null) {
+                storeRefs[i].makeInvisible();
+                storeRefs[i] = null;
+                stores[i][0] = 0;
+                stores[i][1] = 0;
+            }
+        }
+        for (int i = 0; i < robotRefs.length; i++) {
+            if (robotRefs[i] != null) {
+                robotRefs[i].makeInvisible();
+                robotRefs[i] = null;
+                robots[i][0] = 0;
+                robots[i][1] = 0;
+            }
+        }
+        profit = 0;
+        System.out.println("SilkRoad ha sido reiniciado.");
     }
 
     public int profit() {
@@ -243,13 +355,6 @@ public class SilkRoad {
         return robots;
     }
 
-    public void makeVisible() {
-        // Método vacío: Implementar la lógica para hacer visible la SilkRoad
-    }
-
-    public void makeInvisible() {
-        // Método vacío: Implementar la lógica para hacer invisible la SilkRoad
-    }
 
     public void finish() {
         // Método vacío: Implementar la lógica para finalizar el proceso o la simulación
