@@ -299,24 +299,28 @@ public class SilkRoad {
             return;
         }
     
+        // Ocultar tiendas
         if (storeRefs != null) {
             for (Store s : storeRefs) {
                 if (s != null) s.makeInvisible();
             }
         }
     
+        // Ocultar robots
         if (robotRefs != null) {
             for (Robot r : robotRefs) {
                 if (r != null) r.makeInvisible();
             }
         }
     
+        // Ocultar camino y barra
         if (road != null) road.makeInvisible();
         if (progressBar != null) progressBar.makeInvisible();
     
         visible = false;
-        System.out.println("SilkRoad: ahora invisible (solo lógica activa).");
+        System.out.println("SilkRoad: ahora invisible (estado guardado, lógica activa).");
     }
+    
     
     public void makeVisible() {
         if (visible) {
@@ -324,22 +328,25 @@ public class SilkRoad {
             return;
         }
     
+        // Mostrar camino
         if (road != null) road.makeVisible();
     
+        // Mostrar tiendas en su última posición
         if (storeRefs != null) {
-            for (Store s : storeRefs) {
+            for (int i = 0; i < storeRefs.length; i++) {
+                Store s = storeRefs[i];
                 if (s != null) {
-                    // No reposicionar, solo mostrar en la última posición real
-                    s.makeVisible();
+                    s.makeVisible(); // usa posición actual (ya guardada en Store)
                 }
             }
         }
     
+        // Mostrar robots en su última posición
         if (robotRefs != null) {
-            for (Robot r : robotRefs) {
+            for (int i = 0; i < robotRefs.length; i++) {
+                Robot r = robotRefs[i];
                 if (r != null) {
-                    // Igual: se dibuja donde ya estaba en memoria
-                    r.makeVisible();
+                    r.makeVisible(); // usa la posición actual (ya guardada en Robot)
                 }
             }
         }
@@ -349,11 +356,6 @@ public class SilkRoad {
         visible = true;
         System.out.println("SilkRoad: ahora visible (manteniendo posiciones actuales).");
     }
-
-
-
-
-
 
 
 
