@@ -1,19 +1,20 @@
+/**
+ * Cell representa una casilla visual del tablero. Contiene un fondo y un
+ * rectángulo interior que simulan la cuadrícula. Puede marcar flags para
+ * saber si contiene un robot o una tienda (lógica ligera).
+ */
 public class Cell {
-    private String color;              // Color de la celda
-    private boolean hasRobot;          // Indica si la celda tiene un robot
-    private boolean hasStore;          // Indica si la celda tiene una tienda
-
+    private String color;              
+    private boolean hasRobot;          
+    private boolean hasStore;          
     private int positionX;     
     private int positionY;     
-
     private Rectangle background; 
     private Rectangle cell;       
     
-    
     /**
-     * Construye una celda en el tablero.
-     *
-     * @param color color de la celda.
+     * Construye una celda en (0,0) con un fondo negro y una "arena" interior.
+     * Marca inicialmente sin robot ni tienda.
      */
     public Cell() {
         this.color = color;
@@ -37,58 +38,53 @@ public class Cell {
     }
 
     /**
-     * Coloca un robot en la celda.
+     * Marca que esta celda tiene un robot.
      */
     public void placeRobot() {
         this.hasRobot = true;
     }
 
     /**
-     * Elimina el robot de la celda.
+     * Quita la marca de robot.
      */
     public void removeRobot() {
         this.hasRobot = false;
     }
 
     /**
-     * Coloca una tienda en la celda.
+     * Marca que esta celda tiene una tienda.
      */
     public void placeStore() {
         this.hasStore = true;
     }
 
     /**
-     * Elimina la tienda de la celda.
+     * Quita la marca de tienda.
      */
     public void removeStore() {
         this.hasStore = false;
     }
 
     /**
-     * Verifica si la celda contiene un robot.
-     *
-     * @return {@code true} si hay un robot, {@code false} en caso contrario.
+     * @return true si la celda tiene un robot
      */
     public boolean hasRobot() {
         return hasRobot;
     }
 
     /**
-     * Verifica si la celda contiene una tienda.
-     *
-     * @return {@code true} si hay una tienda, {@code false} en caso contrario.
+     * @return true si la celda tiene una tienda
      */
     public boolean hasStore() {
         return hasStore;
     }
 
     /**
-     * Mueve la celda (y todos sus elementos gráficos) en una dirección dada.
-     *
-     * @param direction dirección a mover: "up", "down", "left" o "right".
+     * Mueve la celda (ambos rectángulos) en la dirección indicada.
+     * @param direction "up", "down", "left", "right"
      */
     public void moveTo(String direction) {
-        int step = 45; // tamaño de la casilla en píxeles
+        int step = 45; 
         int dx = 0;
         int dy = 0;
     
@@ -102,20 +98,16 @@ public class Cell {
                 return;
         }
     
-        // 🔹 Actualizar posiciones lógicas
         positionX += dx;
         positionY += dy;
-    
-        // 🔹 Mover representaciones gráficas
         background.moveHorizontal(dx);
         background.moveVertical(dy);
-    
         cell.moveHorizontal(dx);
         cell.moveVertical(dy);
     }
     
     /**
-     * Hace visible gráficamente la celda (fondo, celda, y cualquier objeto si existe).
+     * Hace visibles los elementos gráficos de la celda.
      */
     public void makeVisible() {
         background.makeVisible();
@@ -123,7 +115,7 @@ public class Cell {
     }
 
     /**
-     * Hace invisible gráficamente la celda (fondo, celda, y cualquier objeto si existe).
+     * Hace invisibles los elementos gráficos de la celda.
      */
     public void makeInvisible() {
         background.makeInvisible();
@@ -131,38 +123,30 @@ public class Cell {
     }
     
     /**
-     * Devuelve la posición X de la celda.
-     *
-     * @return posición X en el tablero.
+     * @return coordenada X actual
      */
     public int getPositionX() {
         return positionX;
     }
     
     /**
-     * Devuelve la posición Y de la celda.
-     *
-     * @return posición Y en el tablero.
+     * @return coordenada Y actual
      */
     public int getPositionY() {
         return positionY;
     }
     
     /**
-     * Devuelve el color de la celda.
-     *
-     * @return color asociado a la celda.
+     * @return color (campo lógico, no se usa para pintar directamente)
      */
     public String getColor() {
         return color;
     }
 
     /**
-     * Reubica la celda en coordenadas absolutas nuevas.
-     * Esto mueve todos los elementos gráficos asociados.
-     *
-     * @param x nueva coordenada X.
-     * @param y nueva coordenada Y.
+     * Reposiciona la celda aplicando desplazamiento a cada rectángulo.
+     * @param x nueva coordenada X
+     * @param y nueva coordenada Y
      */
     public void setPosition(int x, int y) {
         int dx = x - this.positionX;
@@ -173,7 +157,6 @@ public class Cell {
 
         background.moveHorizontal(dx);
         background.moveVertical(dy);
-
         cell.moveHorizontal(dx);
         cell.moveVertical(dy);
     }
