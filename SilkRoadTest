@@ -12,7 +12,6 @@ import org.junit.Test;
  * - Modo día (schedule) vs modo normal en reboot().
  * - finish() y bandera ok().
  *
- * NOTA: Este archivo añade SOLO documentación y comentarios. No se cambia nada del código existente.
  */
 public class SilkRoadTest {
 
