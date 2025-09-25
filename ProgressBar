@@ -1,21 +1,24 @@
+/**
+ * ProgressBar representa una barra vertical de progreso que muestra
+ * la proporción currentProfit / maxProfit. Crece de abajo hacia arriba.
+ */
 public class ProgressBar {
-    // --- Parámetros de ubicación y tamaño por defecto ---
-    private static final int DEFAULT_X = 20;    // Más a la izquierda (ajusta si lo quieres más a la derecha)
-    private static final int DEFAULT_Y = 160;   // MÁS ABAJO (ajusta este valor para moverla verticalmente)
-    private static final int DEFAULT_WIDTH = 50; // Ancho de la barra
-    private static final int DEFAULT_HEIGHT = 500; // Alto total
+    private static final int DEFAULT_X = 20;
+    private static final int DEFAULT_Y = 160;
+    private static final int DEFAULT_WIDTH = 50;
+    private static final int DEFAULT_HEIGHT = 500;
 
-    private Rectangle bgBar;      // Fondo de la barra
-    private Rectangle bar;        // Barra de progreso (ganancia)
-    private int x, y;             // Esquina superior izquierda
-    private int width, height;    // Dimensiones
-    private int currentProfit;    // Ganancia actual
-    private int maxProfit;        // Ganancia máxima posible
+    private Rectangle bgBar;      // Fondo
+    private Rectangle bar;        // Barra activa
+    private int x, y;
+    private int width, height;
+    private int currentProfit;
+    private int maxProfit;
     private boolean isVisible;
 
     /**
-     * Crea una ProgressBar vertical en posición fija y tamaño fijo.
-     * No requiere parámetros.
+     * Crea la barra con valores por defecto. Si visible es true, se muestra.
+     * @param visible true para mostrar inmediatamente
      */
     public ProgressBar(boolean visible) {
         this.x = DEFAULT_X;
@@ -26,19 +29,16 @@ public class ProgressBar {
         this.maxProfit = 1; // Evita división por cero
         this.isVisible = visible;
     
-        // Fondo gris
         bgBar = new Rectangle();
         bgBar.changeColor("lightgray");
         bgBar.changeSize(height, width); 
         bgBar.setPosition(x, y);
     
-        // Barra verde
         bar = new Rectangle();
         bar.changeColor("green");
         bar.changeSize(0, width); 
         bar.setPosition(x, y + height);
     
-        // Hacer visible solo si visible es true
         if (isVisible) {
             bgBar.makeVisible();
             bar.makeVisible();
@@ -46,28 +46,24 @@ public class ProgressBar {
     }
 
     /**
-     * Actualiza el progreso de la barra.
-     * @param currentProfit ganancia actual (número >= 0)
-     * @param maxProfit ganancia máxima posible (número > 0)
+     * Ajusta el progreso (redimensionando la barra verde).
+     * @param currentProfit ganancia actual (>=0)
+     * @param maxProfit ganancia máxima posible (>0, se fuerza a 1 si llega 0)
      */
     public void setProgress(int currentProfit, int maxProfit) {
         this.currentProfit = Math.max(0, currentProfit);
-        this.maxProfit = Math.max(1, maxProfit); // Nunca 0
+        this.maxProfit = Math.max(1, maxProfit);
         double frac = (double)this.currentProfit / this.maxProfit;
-        frac = Math.max(0.0, Math.min(1.0, frac)); // Clamp entre 0 y 1
-
+        frac = Math.max(0.0, Math.min(1.0, frac));
         int progHeight = (int)(height * frac);
-
-        // La barra debe crecer de abajo hacia arriba
         bar.changeSize(progHeight, width);
         bar.setPosition(x, y + height - progHeight);
-         if (isVisible) bar.makeVisible();
+        if (isVisible) bar.makeVisible();
         else bar.makeInvisible();
     }
     
-
     /**
-     * Hace visible la progress bar.
+     * Hace visible la barra (fondo + barra interna).
      */
     public void makeVisible() {
         if (!isVisible) {
@@ -78,7 +74,7 @@ public class ProgressBar {
     }
 
     /**
-     * Hace invisible la progress bar.
+     * Hace invisible la barra (fondo + barra interna).
      */
     public void makeInvisible() {
         if (isVisible) {
