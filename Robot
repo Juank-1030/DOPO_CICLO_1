@@ -1,5 +1,10 @@
 import java.util.*;
 
+/**
+ * Robot representa un objeto compuesto (cabeza, ojos, boca) con color de cabeza aleatorio.
+ * Permite: moverse (reposicionando todas las partes), hacerse visible/invisible
+ * y un "blink" (parpadeo) simple alternando visibilidad.
+ */
 public class Robot {
     private String color;              
     private int positionX;             
@@ -11,6 +16,10 @@ public class Robot {
     private Rectangle mouth;
     private boolean isVisible;
 
+    /**
+     * Construye un robot con tamaño fijo y color aleatorio.
+     * @param visible true para hacerlo visible tras construir
+     */
     public Robot(boolean visible) {
         this.size = 15;
         this.positionX = 36; 
@@ -24,20 +33,17 @@ public class Robot {
         robotHead.changeSize(size, size);
         robotHead.setPosition(positionX, positionY);
         
-
         int eyeSize = size / 6;
         leftEye = new Circle();
         leftEye.changeColor(eyeAndMouthColor);
         leftEye.changeSize(eyeSize);
         leftEye.setPosition(positionX + size - 14, positionY + size / 4);
         
-
         rightEye = new Circle();
         rightEye.changeColor(eyeAndMouthColor);
         rightEye.changeSize(eyeSize);
         rightEye.setPosition(positionX + size - 4, positionY + size / 4);
         
-
         mouth = new Rectangle();
         mouth.changeColor(eyeAndMouthColor);
         mouth.changeSize(1, 10);
@@ -48,31 +54,37 @@ public class Robot {
         }
     }
 
+    /**
+     * Selecciona un color aleatorio para el robot.
+     * @return color elegido
+     */
     private String getRandomColor() {
         String[] colors = {"red", "blue", "green", "yellow", "magenta", "cyan", "black", "brown", "purple", "orange"};
         Random rand = new Random();
         return colors[rand.nextInt(colors.length)];
     }
 
-
+    /**
+     * Reposiciona el robot de forma absoluta y muestra sus componentes.
+     * @param x nueva coordenada X
+     * @param y nueva coordenada Y
+     */
     public void moveTo(int x, int y) {
-        positionX = x;  // Actualizamos la posición X
-        positionY = y;  // Actualizamos la posición Y
-    
-        // Mover todas las partes del robot (cabeza, ojos, boca)
+        positionX = x;
+        positionY = y;
         robotHead.setPosition(positionX, positionY);
         leftEye.setPosition(positionX + size - 14, positionY + size / 4);
         rightEye.setPosition(positionX + size - 4, positionY + size / 4);
         mouth.setPosition(positionX + size / 6, positionY + size - (size / 10) - 1);
-    
-        // Hacer visible todas las partes del robot
         robotHead.makeVisible();
         leftEye.makeVisible();
         rightEye.makeVisible();
         mouth.makeVisible();
     }
 
-
+    /**
+     * Hace visible el robot (todas sus partes) si no lo está.
+     */
     public void makeVisible() {
         if (!isVisible) {
             robotHead.makeVisible();
@@ -83,6 +95,9 @@ public class Robot {
         }
     }
 
+    /**
+     * Hace invisible el robot (todas sus partes) si está visible.
+     */
     public void makeInvisible() {
         if (isVisible) {
             robotHead.makeInvisible();
@@ -93,22 +108,29 @@ public class Robot {
         }
     }
 
-    // Métodos para obtener la posición actual (útil para movimiento relativo)
+    /**
+     * @return coordenada X actual.
+     */
     public int getX() {
         return positionX;
     }
+
+    /**
+     * @return coordenada Y actual.
+     */
     public int getY() {
         return positionY;
     }
     
+    /**
+     * Alterna visibilidad cada paso (parpadeo simple).
+     * @param step número de paso (par = invisible, impar = visible)
+     */
     public void blinkStep(int step) {
-        // Cada paso alterna la visibilidad según el número del "tick"
         if (step % 2 == 0) {
             makeInvisible();
         } else {
             makeVisible();
         }
     }
-
-
 }
