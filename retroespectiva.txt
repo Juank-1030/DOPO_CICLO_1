@@ -1,0 +1,39 @@
+1. ¿Cuáles fueron los mini-ciclos definidos? Justifíquenlos.
+
+Mini-ciclo 1: Crear la ruta de seda → Implementar el requisito 10 para poder leer la entrada y generar el simulador base.
+
+Mini-ciclo 2: Movimiento de los robots → Extender el simulador con la lógica de decisión de los robots (requisito 11).
+
+Mini-ciclo 3: Consultas → Permitir consultar las estadísticas de tiendas desocupadas y ganancias de los robots (requisitos 12 y 13).
+
+Mini-ciclo 4: Refactoring y pruebas → Ajustar el diseño en Astah, aplicar refactoring en el código, y crear pruebas unitarias invisibles.
+
+2. ¿Cuál es el estado actual del proyecto en términos de mini-ciclos? ¿por qué?
+
+El proyecto se encuentra en el mini-ciclo 3 (consultas), porque ya se implementó la creación de la ruta y el movimiento de los robots, pero aún se están afinando las consultas y pruebas
+
+3. ¿Cuál fue el tiempo total invertido por cada uno de ustedes? (Horas/Hombre)
+
+juan Carlos bohorquez 10 horas
+juan diego valderrama 10 horas
+
+4. ¿Cuál consideran fue el mayor logro? ¿Por qué?
+
+El mayor logro fue lograr que los robots tomaran decisiones de movimiento maximizando la ganancia, porque implicó entender la lógica del problema de la maratón, adaptarla al simulador y mantener un diseño extensible.
+
+5. ¿Cuál consideran que fue el mayor problema técnico? ¿Qué hicieron para resolverlo?
+
+El mayor problema técnico fue la sincronización entre la representación visual de la ruta y la lógica de los robots. Se resolvió dividiendo responsabilidades en clases más claras y usando pruebas unitarias para validar los cambios.
+
+6. ¿Qué hicieron bien como equipo? ¿Qué se comprometen a hacer para mejorar los resultados?
+
+lo que hicimos bien fue la planificación de mini-ciclos y la distribución de tareas.
+
+
+7. Considerando las prácticas XP incluidas en los laboratorios. ¿cuál fue la más útil? ¿por qué?
+
+La práctica más útil fue Programación en pares, porque permitió detectar errores más rápido y mantener un código consistente entre integrantes.
+
+8. ¿Qué referencias usaron? ¿Cuál fue la más útil? Incluyan citas con estándares adecuados.
+
+Oracle. Java Platform SE 8 API Specification. Recuperado de https://docs.oracle.com/javase/8/docs/api/
