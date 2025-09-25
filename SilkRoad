@@ -17,6 +17,13 @@ public class SilkRoad {
     private Robot[] robotRefs; 
     private Store[] storeRefs;
     private int[] robotOrigins;
+    private int[][] profitPerLocation;
+    
+    private int[][] daysSchedule = null;   // cada evento: [1,x] robot, [2,x,c] tienda
+    private int dayIndexSchedule = -1;     // -1 = no se ha aplicado ningún día
+    private boolean dayMode = false;       // true => reboot actúa como "pasar día"
+
+
 
 
     // Constructor que recibe la longitud del camino
@@ -29,8 +36,12 @@ public class SilkRoad {
         this.storeRefs = new Store[this.positions.length];
         this.robotOrigins = new int[length+1];
         Arrays.fill(this.robotOrigins, -1);
-
         this.road = new Road(length);
+        this.profitPerLocation = new int[this.positions.length+1][2];
+        for (int i = 0; i < this.profitPerLocation.length; i++) {
+            this.profitPerLocation[i][0] = i;   // location
+            this.profitPerLocation[i][1] = 0;   // acumulado
+        }
         int[][] roadPos = road.getPositions();
         for (int i = 0; i < roadPos.length; i++) {
             this.positions[i][0] = roadPos[i][0];
@@ -42,6 +53,15 @@ public class SilkRoad {
         this.visible = true;
         this.lastOperationOK = true;
     }
+    
+    public SilkRoad(int[][] days) {
+        this(Math.max(231, maxLocationFromDays(days))); // this(...) debe ir primero
+        this.daysSchedule = days;
+        this.dayIndexSchedule = -1;
+        this.dayMode = true;
+        System.out.println("Schedule cargado: " + (days == null ? 0 : days.length) + " días. Usa reboot() para pasar el día.");
+    }
+
     
     
     public int getLength() {
@@ -61,6 +81,19 @@ public class SilkRoad {
     private void sortRobots() {
         Arrays.sort(robots, (a, b) -> Integer.compare(a[0], b[0]));  // Ordena por la columna de location
     }
+    
+    public int[][] profitPerMove() {
+        List<int[]> result = new ArrayList<>();
+        for (int i = 0; i < profitPerLocation.length; i++) {
+            if (profitPerLocation[i][1] > 0) {
+                result.add(new int[]{ profitPerLocation[i][0], profitPerLocation[i][1] });
+            }
+        }
+        return result.toArray(new int[0][0]);
+    }
+
+
+
     
     public void setCellPosition(int index, int x, int y) {
         if (index >= 0 && index < positions.length) {
@@ -99,7 +132,33 @@ public class SilkRoad {
         System.out.println("Tienda colocada en la casilla " + location + " con " + tenges + " tenges.");
         lastOperationOK = true;
     }
-
+    
+    public int[][] emptiedStores() {
+        // Lista temporal para guardar las tiendas vacías
+        List<int[]> emptyList = new ArrayList<>();
+    
+        for (int i = 0; i < stores.length; i++) {
+            if (storeRefs[i] != null && stores[i][1] == 0) { 
+                // Cambiar el color de la tienda a negro
+                storeRefs[i].changeColor("black");
+    
+                // Guardar datos de la tienda vacía en formato [location, tenges]
+                emptyList.add(new int[]{i, 0});
+            }
+        }
+    
+        // Ordenamos por la ubicación (location)
+        emptyList.sort(Comparator.comparingInt(a -> a[0]));
+    
+        // Convertimos la lista a matriz
+        int[][] result = new int[emptyList.size()][2];
+        for (int j = 0; j < emptyList.size(); j++) {
+            result[j][0] = emptyList.get(j)[0]; // location
+            result[j][1] = emptyList.get(j)[1]; // tenges (0)
+        }
+    
+        return result;
+    }
 
     // Método para colocar el robot en la celda indicada por la location
     public void placeRobot(int location) {
@@ -174,29 +233,77 @@ public class SilkRoad {
         transferTengesIfCoincide();
         lastOperationOK = true;
     }
+    
+    public void moveRobots() {
+        int closestRobot = -1;
+        int closestStore = -1;
+        int minDistance = Integer.MAX_VALUE;
+    
+        // Buscar la tienda más cercana para cada robot
+        for (int s = 0; s < stores.length; s++) {
+            if (storeRefs[s] != null && stores[s][1] > 0) {  // tienda activa con tenges
+                for (int r = 0; r < robots.length; r++) {
+                    if (robotRefs[r] != null) {  // robot existente
+                        int distance = Math.abs(r - s);
+                        if (distance < minDistance) {
+                            minDistance = distance;
+                            closestRobot = r;
+                            closestStore = s;
+                        }
+                    }
+                }
+            }
+        }
+    
+        if (closestRobot == -1 || closestStore == -1) {
+            System.out.println("moveRobots: No hay robots o tiendas activas.");
+            return;
+        }
+    
+        // Calcular el movimiento en "meters" (diferencia de celdas)
+        int meters = closestStore - closestRobot;
+    
+        System.out.println("moveRobots: Robot en " + closestRobot + 
+                           " irá a tienda en " + closestStore + 
+                           " -> meters=" + meters);
+    
+        // Mover el robot usando tu método que ya maneja la parte gráfica
+        moveRobot(closestRobot, meters);
+    
+        lastOperationOK = true;
+    }
 
-    // Método privado que revisa si algún robot coincide con alguna tienda
-    // y transfiere tenges, actualizando la ProgressBar automáticamente
+
+
+
     private void transferTengesIfCoincide() {
-        for (int i = 0; i < robotRefs.length; i++) {
+        for (int i = 0; i < robots.length; i++) {
             Robot r = robotRefs[i];
             if (r == null) continue;
     
             Store s = storeRefs[i];
             if (s != null && stores[i][1] > 0) {
-                int collected = stores[i][1];   // Tengues a recoger
-                robots[i][1] += collected;      // Sumarlos al robot
-                profit += collected;            // Sumar a la ganancia total
-                stores[i][1] = 0;               // Vaciar la tienda
+                int collected = stores[i][1];   // lo que hay en la tienda
+                stores[i][1] = 0;               // vaciar tienda
+                robots[i][1] += collected;      // asignar al robot
+                profit += collected;            // ganancia global
     
-                // Actualizar la barra de progreso
+                // 👉 acumular en profitPerLocation (suma al acumulado anterior)
+                profitPerLocation[i][1] += collected;
+    
+                System.out.println(
+                    "Robot en celda " + i +
+                    " recogió " + collected +
+                    " → acumulado ahora: " + profitPerLocation[i][1]
+                );
+    
                 updateProgressBar();
-    
-                System.out.println("Robot en la celda " + i + 
-                    " tomó " + collected + " tenges de la tienda en la misma celda.");
             }
         }
     }
+
+
+
 
     
     private void updateProgressBar() {
@@ -360,6 +467,36 @@ public class SilkRoad {
 
 
     public void reboot() {
+        // MODO DÍAS: si hay schedule activo, reboot avanza el día y NO borra nada
+        if (dayMode && daysSchedule != null) {
+            if (dayIndexSchedule + 1 >= daysSchedule.length) {
+                System.out.println("No hay más días en el schedule.");
+                lastOperationOK = true;
+                return;
+            }
+            dayIndexSchedule++;
+            int[] e = daysSchedule[dayIndexSchedule];
+            if (e == null || e.length < 2) {
+                System.out.println("Día " + (dayIndexSchedule + 1) + " vacío o inválido.");
+                lastOperationOK = true;
+                return;
+            }
+            int t = e[0];
+            int x = e[1];
+            if (t == 1) {
+                placeRobot(x);
+            } else if (t == 2) {
+                int c = (e.length > 2) ? e[2] : 0;
+                placeStore(x, c);
+            } else {
+                System.out.println("Tipo de evento inválido en día " + (dayIndexSchedule + 1) + ": " + t);
+            }
+            System.out.println("Día " + (dayIndexSchedule + 1) + " aplicado con reboot (acumulando).");
+            lastOperationOK = true;
+            return;
+        }
+
+        // COMPORTAMIENTO ORIGINAL DE reboot (si no hay schedule activo)
         for (int i = 0; i < storeRefs.length; i++) {
             if (storeRefs[i] != null) {
                 storeRefs[i].makeInvisible();
@@ -382,6 +519,7 @@ public class SilkRoad {
         System.out.println("SilkRoad ha sido reiniciado.");
         lastOperationOK = true;
     }
+
 
     public int profit() {        
         return profit;    
@@ -407,7 +545,10 @@ public class SilkRoad {
         for (int i = 0; i < robots.length; i++) {            
             robots[i][0] = 0;            
             robots[i][1] = 0;        
-        }        
+        }
+        for (int i = 0; i < profitPerLocation.length; i++) {
+            profitPerLocation[i][1] = 0;
+        }
         profit = 0;        
         maxProfit = 0;        
         updateProgressBar();        
@@ -417,4 +558,31 @@ public class SilkRoad {
     public boolean ok() {
         return lastOperationOK;
     }
+    
+    private void setDaysSchedule(int[][] days) {
+        this.daysSchedule = days;
+        this.dayIndexSchedule = -1;
+        this.dayMode = true;
+        System.out.println("Schedule cargado: " + (days == null ? 0 : days.length) + " días. Usa reboot() para pasar el día.");
+    }
+
+    // Si quieres volver al comportamiento original de reboot (borrar todo)
+    private void disableDayMode() {
+        this.dayMode = false;
+        System.out.println("Modo días desactivado: reboot() vuelve a reiniciar todo.");
+    }
+
+    // Helper estático para dimensionar al usar el constructor con days
+    private static int maxLocationFromDays(int[][] days) {
+        int mx = 0;
+        if (days != null) {
+            for (int[] e : days) {
+                if (e != null && e.length >= 2) {
+                    mx = Math.max(mx, e[1]);
+                }
+            }
+        }
+        return mx;
+    }
+
 }
