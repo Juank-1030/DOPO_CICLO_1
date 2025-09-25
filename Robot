@@ -101,14 +101,14 @@ public class Robot {
         return positionY;
     }
     
-    public void blink() {
-        // Parpadeo simple: alterna invisible/visible 3 veces (puedes mejorar el efecto)
-        for (int i = 0; i < 3; i++) {
+    public void blinkStep(int step) {
+        // Cada paso alterna la visibilidad según el número del "tick"
+        if (step % 2 == 0) {
             makeInvisible();
-            try { Thread.sleep(120); } catch (InterruptedException e) {}
+        } else {
             makeVisible();
-            try { Thread.sleep(120); } catch (InterruptedException e) {}
         }
     }
+
 
 }
