@@ -1,0 +1,224 @@
+import static org.junit.Assert.*;
+import org.junit.Test;
+
+public class SilkRoadTest {
+
+    // ---------- Helpers ----------
+    private int countRobots(int[][] robots) {
+        int c = 0;
+        for (int[] r : robots) {
+            if (r != null && r.length >= 2 && r[0] != 0 || (r[0]==0 && r[1]>0)) {
+                // Más robusto: revisamos si hay trazas de robot (location>0 o tenges>0)
+                if (r[0] != 0 || r[1] != 0) c++;
+            }
+        }
+        return c;
+    }
+
+    private int countStores(int[][] stores) {
+        int c = 0;
+        for (int[] s : stores) {
+            if (s != null && s.length >= 2 && (s[0] != 0 || s[1] != 0)) {
+                c++;
+            }
+        }
+        return c;
+    }
+
+    private boolean hasStoreAt(int[][] stores, int loc, int tenges) {
+        if (loc >= 0 && loc < stores.length) {
+            return stores[loc][0] == loc && stores[loc][1] == tenges;
+        }
+        return false;
+    }
+
+    private boolean hasRobotAt(int[][] robots, int loc) {
+        if (loc >= 0 && loc < robots.length) {
+            return robots[loc][0] == loc;
+        }
+        return false;
+    }
+
+    // ---------- Tests ----------
+
+    @Test
+    public void testConstructorLength() {
+        SilkRoad sr = new SilkRoad(20);
+        assertEquals(20, sr.getLength());
+        assertEquals(0, sr.profit());
+        assertTrue(sr.ok());
+        assertEquals(0, countRobots(sr.robots()));
+        assertEquals(0, countStores(sr.stores()));
+    }
+
+    @Test
+    public void testConstructorDays_NoInitialPlacement() {
+        int[][] days = { {1,5}, {2,10,30} };
+        SilkRoad sr = new SilkRoad(days);
+        // Antes de cualquier reboot no debe haber robots ni tiendas
+        assertFalse(hasRobotAt(sr.robots(), 5));
+        assertFalse(hasStoreAt(sr.stores(), 10, 30));
+        sr.reboot(); // día 1: robot 5
+        assertTrue(hasRobotAt(sr.robots(), 5));
+        sr.reboot(); // día 2: tienda 10 con 30
+        assertTrue(hasStoreAt(sr.stores(), 10, 30));
+    }
+
+    @Test
+    public void testPlaceStoreThenRobot_ImmediateTransfer() {
+        SilkRoad sr = new SilkRoad(30);
+        sr.placeStore(10, 40);
+        assertTrue(hasStoreAt(sr.stores(), 10, 40));
+        sr.placeRobot(10); // debe vaciar y transferir
+        assertTrue(hasRobotAt(sr.robots(), 10));
+        assertEquals(0, sr.stores()[10][1]); // tienda vacía
+        assertEquals(40, sr.profit());       // profit incrementado
+    }
+
+    @Test
+    public void testPlaceRobotThenStore_ImmediateTransfer() {
+        SilkRoad sr = new SilkRoad(30);
+        sr.placeRobot(12);
+        assertTrue(hasRobotAt(sr.robots(), 12));
+        sr.placeStore(12, 25); // debe transferir
+        assertEquals(0, sr.stores()[12][1]);
+        assertEquals(25, sr.profit());
+    }
+
+    @Test
+    public void testRemoveStoreAndRobot() {
+        SilkRoad sr = new SilkRoad(30);
+        sr.placeStore(8, 15);
+        sr.placeRobot(5);
+        sr.removeStore(8);
+        assertEquals(0, sr.stores()[8][0]);
+        assertEquals(0, sr.stores()[8][1]);
+        sr.removeRobot(5);
+        assertEquals(0, sr.robots()[5][0]);
+        assertEquals(0, sr.robots()[5][1]);
+    }
+
+    @Test
+    public void testMoveRobot() {
+        SilkRoad sr = new SilkRoad(30);
+        sr.placeRobot(3);
+        sr.moveRobot(3, 5); // al 8
+        assertFalse(hasRobotAt(sr.robots(), 3));
+        assertTrue(hasRobotAt(sr.robots(), 8));
+    }
+
+    @Test
+    public void testMoveRobotsChoosesClosestPair() {
+        SilkRoad sr = new SilkRoad(50);
+        sr.placeRobot(2);
+        sr.placeRobot(20);
+        sr.placeStore(5, 10);   // Distancia 3 para robot en 2
+        sr.placeStore(25, 40);  // Distancia 5 para robot en 20
+        sr.moveRobots();        // Debe mover robot de 2 a 5
+        assertTrue(hasRobotAt(sr.robots(), 5));
+        assertEquals(0, sr.stores()[5][1]);  // vacía
+        // Profit = 10 (solo la tienda cercana)
+        assertEquals(10, sr.profit());
+    }
+
+    @Test
+    public void testResupplyStores() {
+        SilkRoad sr = new SilkRoad(20);
+        sr.placeStore(4, 5);
+        sr.placeStore(6, 0);
+        sr.resupplyStores();
+        assertEquals(10, sr.stores()[4][1]);
+        assertEquals(10, sr.stores()[6][1]);
+    }
+
+    @Test
+    public void testReturnRobots() {
+        SilkRoad sr = new SilkRoad(30);
+        sr.placeRobot(4);
+        sr.moveRobot(4, 6); // al 10
+        sr.returnRobots();
+        // Robot debe regresar a 4
+        assertTrue(hasRobotAt(sr.robots(), 4));
+        assertFalse(hasRobotAt(sr.robots(), 10));
+    }
+
+    @Test
+    public void testEmptiedStores() {
+        SilkRoad sr = new SilkRoad(30);
+        sr.placeStore(9, 10);
+        sr.placeRobot(9); // vacía
+        sr.placeStore(15, 5);
+        sr.placeRobot(15); // vacía
+        int[][] emptied = sr.emptiedStores();
+        // Debe contener (9,0) y (15,0)
+        boolean nine = false, fifteen = false;
+        for (int[] row : emptied) {
+            if (row[0] == 9 && row[1] == 0) nine = true;
+            if (row[0] == 15 && row[1] == 0) fifteen = true;
+        }
+        assertTrue(nine && fifteen);
+    }
+
+    @Test
+    public void testRebootDayMode() {
+        int[][] days = { {1,3}, {2,10,50}, {1,5} };
+        SilkRoad sr = new SilkRoad(days);
+        sr.reboot(); // día 1 robot 3
+        assertTrue(hasRobotAt(sr.robots(), 3));
+        sr.reboot(); // día 2 tienda 10
+        assertTrue(hasStoreAt(sr.stores(), 10, 50));
+        sr.reboot(); // día 3 robot 5
+        assertTrue(hasRobotAt(sr.robots(), 5));
+        sr.reboot(); // ya no hay más días
+        // No debería lanzar error ni cambiar lo anterior
+        assertTrue(hasRobotAt(sr.robots(), 3));
+        assertTrue(hasRobotAt(sr.robots(), 5));
+    }
+
+    @Test
+    public void testRebootNormalMode() {
+        SilkRoad sr = new SilkRoad(20);
+        sr.placeStore(4, 10);
+        sr.placeRobot(4); // recoge
+        assertEquals(10, sr.profit());
+        sr.reboot(); // sin dayMode => limpia
+        assertEquals(0, sr.profit());
+        assertEquals(0, countRobots(sr.robots()));
+        assertEquals(0, countStores(sr.stores()));
+    }
+
+    @Test
+    public void testFinish() {
+        SilkRoad sr = new SilkRoad(25);
+        sr.placeStore(2, 5);
+        sr.placeRobot(2);
+        sr.placeStore(10, 7);
+        sr.finish();
+        // Todo a cero
+        assertEquals(0, sr.profit());
+        assertEquals(0, countStores(sr.stores()));
+        assertEquals(0, countRobots(sr.robots()));
+    }
+
+    @Test
+    public void testInvalidOperationsDoNotThrow() {
+        SilkRoad sr = new SilkRoad(10);
+        sr.placeRobot(50); // fuera de rango
+        sr.placeStore(-3, 5); // fuera de rango
+        // Estado aún consistente
+        assertEquals(0, sr.profit());
+        assertEquals(0, countStores(sr.stores()));
+        assertEquals(0, countRobots(sr.robots()));
+    }
+
+    @Test
+    public void testOkFlagAfterValidOps() {
+        SilkRoad sr = new SilkRoad(15);
+        sr.placeStore(5, 10);
+        assertTrue(sr.ok());
+        sr.placeRobot(5);
+        assertTrue(sr.ok());
+        sr.moveRobot(5, 3);
+        assertTrue(sr.ok());
+    }
+}
