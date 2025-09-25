@@ -1,11 +1,9 @@
 import java.awt.*;
-/**
- * A triangle that can be manipulated and that draws itself on a canvas.
- * 
- * @author  Michael Kolling and David J. Barnes
- * @version 1.0  (15 July 2000)
- */
 
+/**
+ * Triangle es una figura isósceles simple con base horizontal y vértice superior.
+ * Permite mover, cambiar tamaño y color, y alternar visibilidad.
+ */
 public class Triangle{
     
     public static int VERTICES=3;
@@ -18,7 +16,7 @@ public class Triangle{
     private boolean isVisible;
 
     /**
-     * Create a new triangle at default position with default color.
+     * Crea un triángulo con dimensiones y posición por defecto.
      */
     public Triangle(){
         height = 30;
@@ -30,7 +28,7 @@ public class Triangle{
     }
 
     /**
-     * Make this triangle visible. If it was already visible, do nothing.
+     * Hace visible el triángulo (si no lo estaba).
      */
     public void makeVisible(){
         isVisible = true;
@@ -38,44 +36,29 @@ public class Triangle{
     }
     
     /**
-     * Make this triangle invisible. If it was already invisible, do nothing.
+     * Hace invisible el triángulo (si estaba visible).
      */
     public void makeInvisible(){
         erase();
         isVisible = false;
     }
     
-    /**
-     * Move the triangle a few pixels to the right.
-     */
     public void moveRight(){
         moveHorizontal(20);
     }
-
-    /**
-     * Move the triangle a few pixels to the left.
-     */
     public void moveLeft(){
         moveHorizontal(-20);
     }
-
-    /**
-     * Move the triangle a few pixels up.
-     */
     public void moveUp(){
         moveVertical(-20);
     }
-
-    /**
-     * Move the triangle a few pixels down.
-     */
     public void moveDown(){
         moveVertical(20);
     }
 
     /**
-     * Move the triangle horizontally.
-     * @param distance the desired distance in pixels
+     * Mueve en horizontal.
+     * @param distance px (positivo derecha / negativo izquierda)
      */
     public void moveHorizontal(int distance){
         erase();
@@ -84,8 +67,8 @@ public class Triangle{
     }
 
     /**
-     * Move the triangle vertically.
-     * @param distance the desired distance in pixels
+     * Mueve en vertical.
+     * @param distance px (positivo abajo / negativo arriba)
      */
     public void moveVertical(int distance){
         erase();
@@ -94,19 +77,17 @@ public class Triangle{
     }
 
     /**
-     * Slowly move the triangle horizontally.
-     * @param distance the desired distance in pixels
+     * Movimiento lento horizontal.
+     * @param distance distancia total px
      */
     public void slowMoveHorizontal(int distance){
         int delta;
-
         if(distance < 0) {
             delta = -1;
             distance = -distance;
         } else {
             delta = 1;
         }
-
         for(int i = 0; i < distance; i++){
             xPosition += delta;
             draw();
@@ -114,19 +95,17 @@ public class Triangle{
     }
 
     /**
-     * Slowly move the triangle vertically.
-     * @param distance the desired distance in pixels
+     * Movimiento lento vertical.
+     * @param distance distancia total px
      */
     public void slowMoveVertical(int distance){
         int delta;
-
         if(distance < 0) {
             delta = -1;
             distance = -distance;
         } else {
             delta = 1;
         }
-
         for(int i = 0; i < distance; i++){
             yPosition += delta;
             draw();
@@ -134,9 +113,9 @@ public class Triangle{
     }
 
     /**
-     * Change the size to the new size
-     * @param newHeight the new height in pixels. newHeight must be >=0.
-     * @param newWidht the new width in pixels. newWidht must be >=0.
+     * Cambia dimensiones (alto y ancho).
+     * @param newHeight nuevo alto (>=0)
+     * @param newWidth nuevo ancho (>=0)
      */
     public void changeSize(int newHeight, int newWidth) {
         erase();
@@ -146,17 +125,16 @@ public class Triangle{
     }
     
     /**
-     * Change the color. 
-     * @param color the new color. Valid colors are "red", "yellow", "blue", "green",
-     * "magenta" and "black".
+     * Cambia el color actual.
+     * @param newColor nombre de color
      */
     public void changeColor(String newColor){
         color = newColor;
         draw();
     }
 
-    /*
-     * Draw the triangle with current specifications on screen.
+    /**
+     * Dibuja el triángulo si está visible.
      */
     private void draw(){
         if(isVisible) {
@@ -168,8 +146,8 @@ public class Triangle{
         }
     }
 
-    /*
-     * Erase the triangle on screen.
+    /**
+     * Borra del lienzo si está visible.
      */
     private void erase(){
         if(isVisible) {
@@ -178,6 +156,11 @@ public class Triangle{
         }
     }
     
+    /**
+     * Reposiciona el triángulo.
+     * @param x nueva X
+     * @param y nueva Y
+     */
     public void setPosition(int x, int y) {
         erase();
         this.xPosition = x;
