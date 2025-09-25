@@ -4,25 +4,18 @@ import java.util.List;
 import java.util.*;
 
 /**
- * Canvas is a class to allow for simple graphical drawing on a canvas.
- * This is a modification of the general purpose Canvas, specially made for
- * the BlueJ "shapes" example. 
+ * Canvas es un singleton que gestiona el renderizado de formas simples.
+ * Mantiene una lista de objetos (referencias) con su descripción (forma + color),
+ * redibujando el lienzo completo en cada actualización.
  *
- * @author: Bruce Quig
- * @author: Michael Kolling (mik)
- *
- * @version: 1.6 (shapes)
+ * Uso típico desde figuras como Rectangle, Circle, etc.
  */
 public class Canvas{
-    // Note: The implementation of this class (specifically the handling of
-    // shape identity and colors) is slightly more complex than necessary. This
-    // is done on purpose to keep the interface and instance fields of the
-    // shape objects in this project clean and simple for educational purposes.
-
     private static Canvas canvasSingleton;
 
     /**
-     * Factory method to get the canvas singleton object.
+     * Obtiene (o crea) la instancia única de Canvas y garantiza su visibilidad.
+     * @return instancia singleton de Canvas
      */
     public static Canvas getCanvas(){
         if (canvasSingleton == null) {
@@ -40,8 +33,7 @@ public class Canvas{
         return canvasSingleton;
     }
 
-    //  ----- instance part -----
-
+    // ----- Atributos de instancia -----
     private JFrame frame;
     private CanvasPane canvas;
     private Graphics2D graphic;
@@ -51,11 +43,11 @@ public class Canvas{
     private HashMap <Object,ShapeDescription> shapes;
     
     /**
-     * Create a Canvas.
-     * @param title  title to appear in Canvas Frame
-     * @param width  the desired width for the canvas
-     * @param height  the desired height for the canvas
-     * @param bgClour  the desired background colour of the canvas
+     * Constructor privado (patrón singleton).
+     * @param title título de la ventana
+     * @param width ancho deseado
+     * @param height alto deseado
+     * @param bgColour color de fondo
      */
     private Canvas(String title, int width, int height, Color bgColour){
         frame = new JFrame();
@@ -70,16 +62,12 @@ public class Canvas{
     }
 
     /**
-     * Set the canvas visibility and brings canvas to the front of screen
-     * when made visible. This method can also be used to bring an already
-     * visible canvas to the front of other windows.
-     * @param visible  boolean value representing the desired visibility of
-     * the canvas (true or false) 
+     * Establece visibilidad de la ventana y/o inicializa el buffer gráfico la primera vez.
+     * @param visible true para mostrar
      */
     public void setVisible(boolean visible){
         if(graphic == null) {
-            // first time: instantiate the offscreen image and fill it with
-            // the background colour
+            // Inicialización perezosa del buffer
             Dimension size = canvas.getSize();
             canvasImage = canvas.createImage(size.width, size.height);
             graphic = (Graphics2D)canvasImage.getGraphics();
@@ -91,28 +79,32 @@ public class Canvas{
     }
 
     /**
-     * Draw a given shape onto the canvas.
-     * @param  referenceObject  an object to define identity for this shape
-     * @param  color            the color of the shape
-     * @param  shape            the shape object to be drawn on the canvas
+     * Dibuja una forma asociada a un objeto de referencia (para mantener identidad).
+     * @param referenceObject objeto que actúa como clave
+     * @param color color textual
+     * @param shape la forma a dibujar
      */
     public void draw(Object referenceObject, String color, Shape shape){
-        objects.remove(referenceObject);   // just in case it was already there
-        objects.add(referenceObject);      // add at the end
+        objects.remove(referenceObject);   
+        objects.add(referenceObject);      
         shapes.put(referenceObject, new ShapeDescription(shape, color));
         redraw();
     }
  
     /**
-     * Erase a given shape's from the screen.
-     * @param  referenceObject  the shape object to be erased 
+     * Borra (olvida) una forma previamente registrada.
+     * @param referenceObject referencia usada al dibujar
      */
     public void erase(Object referenceObject){
-        objects.remove(referenceObject);   // just in case it was already there
+        objects.remove(referenceObject);
         shapes.remove(referenceObject);
         redraw();
     }
 
+    /**
+     * Configura el color de dibujo según una cadena.
+     * @param colorString nombre de color
+     */
     public void setForegroundColor(String colorString) {
         switch (colorString.toLowerCase()) {
             case "red": 
@@ -149,65 +141,63 @@ public class Canvas{
                 graphic.setColor(Color.cyan);
                 break;
             case "brown": 
-                graphic.setColor(new Color(139, 69, 19)); // Saddle Brown
+                graphic.setColor(new Color(139, 69, 19)); 
                 break;
             case "lightgray": 
                 graphic.setColor(Color.lightGray);
                 break;
             case "indigo": 
-                graphic.setColor(new Color(75, 0, 130)); // Indigo
+                graphic.setColor(new Color(75, 0, 130));
                 break;
             case "gold": 
-                graphic.setColor(new Color(255, 215, 0)); // Gold
+                graphic.setColor(new Color(255, 215, 0));
                 break;
             case "salmon": 
-                graphic.setColor(new Color(250, 128, 114)); // Salmon
+                graphic.setColor(new Color(250, 128, 114));
                 break;
             case "beige": 
-                graphic.setColor(new Color(245, 245, 220)); // Beige
+                graphic.setColor(new Color(245, 245, 220));
                 break;
             case "ivory": 
-                graphic.setColor(new Color(255, 255, 240)); // Ivory
+                graphic.setColor(new Color(255, 255, 240));
                 break;
             case "sunsetorange": 
-                graphic.setColor(new Color(255, 97, 56)); // Sunset Orange
+                graphic.setColor(new Color(255, 97, 56));
                 break;
             case "desertsand": 
-                graphic.setColor(new Color(237, 201, 175)); // Desert Sand
+                graphic.setColor(new Color(237, 201, 175));
                 break;
             case "reddirt": 
-                graphic.setColor(new Color(233, 91, 33)); // Red Dirt (resembles desert soil)
+                graphic.setColor(new Color(233, 91, 33));
                 break;
             case "sage": 
-                graphic.setColor(new Color(188, 184, 137)); // Sage (greenish, like sagebrush)
+                graphic.setColor(new Color(188, 184, 137));
                 break;
             case "terracottared": 
-                graphic.setColor(new Color(226, 114, 91)); // Terracotta Red
+                graphic.setColor(new Color(226, 114, 91));
                 break;
             case "amber": 
-                graphic.setColor(new Color(255, 191, 0)); // Amber (yellowish orange)
+                graphic.setColor(new Color(255, 191, 0));
                 break;
             default:
-                graphic.setColor(Color.black); // default to black
+                graphic.setColor(Color.black);
         }
     }
 
     /**
-     * Wait for a specified number of milliseconds before finishing.
-     * This provides an easy way to specify a small delay which can be
-     * used when producing animations.
-     * @param  milliseconds  the number 
+     * Pausa de utilidad (animaciones lentas).
+     * @param milliseconds milisegundos a esperar
      */
     public void wait(int milliseconds){
         try{
             Thread.sleep(milliseconds);
         } catch (Exception e){
-            // ignoring exception at the moment
+            // ignorado
         }
     }
 
     /**
-     * Redraw all shapes currently on the Canvas.
+     * Redibuja todos los objetos registrados en el canvas.
      */
     private void redraw(){
         erase();
@@ -218,7 +208,7 @@ public class Canvas{
     }
        
     /**
-     * Erase the whole canvas. (Does not repaint.)
+     * Borra (repinta fondo) sin redibujar.
      */
     private void erase(){
         Color original = graphic.getColor();
@@ -228,44 +218,54 @@ public class Canvas{
         graphic.setColor(original);
     }
 
-    // ----------- MÉTODOS PARA OBTENER TAMAÑO DEL CANVAS ----------- 
+    /**
+     * @return ancho actual del panel
+     */
     public int getSizeCanvasW() {
         return canvas.getWidth();
     }
 
+    /**
+     * @return alto actual del panel
+     */
     public int getSizeCanvasH() {
         return canvas.getHeight();
     }
-    // --------------------------------------------------------------
 
-    /************************************************************************
-     * Inner class CanvasPane - the actual canvas component contained in the
-     * Canvas frame. This is essentially a JPanel with added capability to
-     * refresh the image drawn on it.
+    /**
+     * Panel interno sobre el que se pinta el buffer.
      */
     private class CanvasPane extends JPanel{
+        @Override
         public void paint(Graphics g){
             g.drawImage(canvasImage, 0, 0, null);
         }
     }
     
-    /************************************************************************
-     * Inner class ShapeDescription - represents a shape and its color.
+    /**
+     * Descripción interna (forma y color) asociada a un objeto de referencia.
      */
     private class ShapeDescription{
         private Shape shape;
         private String colorString;
 
+        /**
+         * @param shape forma a dibujar
+         * @param color color textual
+         */
         public ShapeDescription(Shape shape, String color){
             this.shape = shape;
             colorString = color;
         }
 
+        /**
+         * Dibuja la forma usando el color registrado.
+         * @param graphic contexto gráfico (Graphics2D)
+         */
         public void draw(Graphics2D graphic){
             setForegroundColor(colorString);
             graphic.draw(shape);
             graphic.fill(shape);
         }
     }
-
 }
