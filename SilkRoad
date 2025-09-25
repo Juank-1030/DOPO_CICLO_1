@@ -2,6 +2,22 @@ import java.util.Scanner; // Para recibir la longitud desde el usuario
 import java.util.List;
 import java.util.*;
 
+/**
+ * SilkRoad modela un camino (Road) sobre el cual se colocan tiendas (Store) y robots (Robot).
+ * Administra:
+ * <ul>
+ *   <li>Colocación, movimiento y retorno de robots.</li>
+ *   <li>Colocación de tiendas y transferencia de tenges al coincidir con robots.</li>
+ *   <li>Cálculo de la ganancia total (profit) y acumulada por ubicación (profitPerLocation).</li>
+ *   <li>Modo "día" (dayMode): reboot() avanza eventos de un schedule sin limpiar el estado acumulado.</li>
+ * </ul>
+ * Estructuras principales:
+ * <ul>
+ *   <li>stores / robots: matrices de datos básicos.</li>
+ *   <li>storeRefs / robotRefs: referencias a objetos gráficos.</li>
+ *   <li>profitPerLocation: acumulado de lo recogido por celda.</li>
+ * </ul>
+ */
 public class SilkRoad {
     private int length;                 // Longitud de la SilkRoad
     private int[][] stores;             // Matriz de tiendas {location, tenges}
@@ -23,10 +39,10 @@ public class SilkRoad {
     private int dayIndexSchedule = -1;     // -1 = no se ha aplicado ningún día
     private boolean dayMode = false;       // true => reboot actúa como "pasar día"
 
-
-
-
-    // Constructor que recibe la longitud del camino
+    /**
+     * Crea una SilkRoad con un número de celdas.
+     * @param length longitud lógica (se usa length+1 internamente para matrices)
+     */
     public SilkRoad(int length ) {
         this.length = length;
         this.positions = new int[length+1][2];
@@ -54,6 +70,11 @@ public class SilkRoad {
         this.lastOperationOK = true;
     }
     
+    /**
+     * Constructor que recibe un schedule de días (eventos).
+     * No coloca nada al inicio; se avanza usando reboot() en modo día.
+     * @param days matriz de eventos: [1,x] = robot en x, [2,x,c] = tienda en x con c tenges
+     */
     public SilkRoad(int[][] days) {
         this(Math.max(231, maxLocationFromDays(days))); // this(...) debe ir primero
         this.daysSchedule = days;
@@ -62,26 +83,40 @@ public class SilkRoad {
         System.out.println("Schedule cargado: " + (days == null ? 0 : days.length) + " días. Usa reboot() para pasar el día.");
     }
 
-    
-    
+    /**
+     * @return longitud lógica configurada para el camino.
+     */
     public int getLength() {
         return length;
     }
 
+    /**
+     * Devuelve la matriz interna de robots (uso interno).
+     * @return matriz robots con pares {location, tenges}.
+     */
     private int[][] getRobots() {
         return robots;
     }
     
-    // Ordena la matriz de stores según la ubicación (location) en orden ascendente
+    /**
+     * Ordena la matriz de tiendas por ubicación (no modifica referencias storeRefs).
+     * (Uso potencial para listados externos.)
+     */
     private void sortStores() {
         Arrays.sort(stores, (a, b) -> Integer.compare(a[0], b[0]));  // Ordena por la columna de location
     }
 
-    // Ordena la matriz de robots según la ubicación (location) en orden ascendente
+    /**
+     * Ordena la matriz de robots por ubicación (no modifica robotRefs).
+     */
     private void sortRobots() {
         Arrays.sort(robots, (a, b) -> Integer.compare(a[0], b[0]));  // Ordena por la columna de location
     }
     
+    /**
+     * Retorna el acumulado de profit por ubicación (>0).
+     * @return matriz de pares [location, acumulado].
+     */
     public int[][] profitPerMove() {
         List<int[]> result = new ArrayList<>();
         for (int i = 0; i < profitPerLocation.length; i++) {
@@ -92,9 +127,12 @@ public class SilkRoad {
         return result.toArray(new int[0][0]);
     }
 
-
-
-    
+    /**
+     * Establece manualmente posición (x,y) de una celda.
+     * @param index índice de la celda
+     * @param x coordenada X
+     * @param y coordenada Y
+     */
     public void setCellPosition(int index, int x, int y) {
         if (index >= 0 && index < positions.length) {
             positions[index][0] = x;
@@ -102,7 +140,13 @@ public class SilkRoad {
         }
     }
 
-    
+    /**
+     * Coloca una tienda si la casilla está libre.
+     * Aumenta maxProfit y actualiza la barra de progreso.
+     * Si hay un robot ya presente, se transfiere el dinero inmediatamente.
+     * @param location índice de la celda
+     * @param tenges cantidad de tenges inicial
+     */
     public void placeStore(int location, int tenges) {
         if (location < 0 || location >= positions.length) {
             System.out.println("Índice de casilla inválido: " + location);
@@ -133,6 +177,11 @@ public class SilkRoad {
         lastOperationOK = true;
     }
     
+    /**
+     * Lista las tiendas vaciadas (tenges=0) que tenían objeto Store asociado.
+     * Cambia el color visual de dichas tiendas a negro.
+     * @return matriz [n][2] con {location, 0}
+     */
     public int[][] emptiedStores() {
         // Lista temporal para guardar las tiendas vacías
         List<int[]> emptyList = new ArrayList<>();
@@ -160,7 +209,11 @@ public class SilkRoad {
         return result;
     }
 
-    // Método para colocar el robot en la celda indicada por la location
+    /**
+     * Coloca un robot en la ubicación dada si está libre.
+     * Si hay una tienda con tenges se transfiere inmediatamente.
+     * @param location índice de la celda
+     */
     public void placeRobot(int location) {
         if (location < 0 || location >= positions.length) {
             System.out.println("Índice de casilla inválido: " + location);
@@ -191,7 +244,11 @@ public class SilkRoad {
         lastOperationOK = true;
     }
 
-
+    /**
+     * Mueve un robot existente a una nueva posición (location+meters).
+     * @param location posición actual del robot
+     * @param meters desplazamiento (positivo o negativo)
+     */
     public void moveRobot(int location, int meters) {
         if (location < 0 || location >= robotRefs.length) {
             System.out.println("Índice origen inválido: " + location);
@@ -234,6 +291,10 @@ public class SilkRoad {
         lastOperationOK = true;
     }
     
+    /**
+     * Busca el par robot-tienda con menor distancia y mueve ese robot a la tienda.
+     * Si no hay combinación válida, no hace nada.
+     */
     public void moveRobots() {
         int closestRobot = -1;
         int closestStore = -1;
@@ -273,82 +334,9 @@ public class SilkRoad {
         lastOperationOK = true;
     }
 
-
-
-
-    private void transferTengesIfCoincide() {
-        for (int i = 0; i < robots.length; i++) {
-            Robot r = robotRefs[i];
-            if (r == null) continue;
-    
-            Store s = storeRefs[i];
-            if (s != null && stores[i][1] > 0) {
-                int collected = stores[i][1];   // lo que hay en la tienda
-                stores[i][1] = 0;               // vaciar tienda
-                robots[i][1] += collected;      // asignar al robot
-                profit += collected;            // ganancia global
-    
-                // 👉 acumular en profitPerLocation (suma al acumulado anterior)
-                profitPerLocation[i][1] += collected;
-    
-                System.out.println(
-                    "Robot en celda " + i +
-                    " recogió " + collected +
-                    " → acumulado ahora: " + profitPerLocation[i][1]
-                );
-    
-                updateProgressBar();
-            }
-        }
-    }
-
-
-
-
-    
-    private void updateProgressBar() {
-        if (progressBar != null) {
-            progressBar.setProgress(profit, Math.max(1, maxProfit)); // evita división por cero
-        }
-    }
-
-
-
-    public void removeStore(int location) {
-        if (location < 0 || location >= stores.length) {
-            System.out.println("Índice de tienda inválido: " + location);
-            return;
-        }
-        if (storeRefs != null && storeRefs[location] != null) {
-            storeRefs[location].makeInvisible();
-            storeRefs[location] = null;
-        }
-        maxProfit -= stores[location][1]; 
-        stores[location][0] = 0;
-        stores[location][1] = 0;
-        updateProgressBar(); 
-        System.out.println("Tienda eliminada de la casilla " + location);
-        lastOperationOK = true;
-    }
-
-
-    public void removeRobot(int location) {
-        if (location < 0 || location >= robotRefs.length) {
-            System.out.println("Índice de robot inválido: " + location);
-            return;
-        }
-        if (robotRefs[location] != null) {
-            robotRefs[location].makeInvisible();
-            robotRefs[location] = null;
-        }
-        robots[location][0] = 0;
-        robots[location][1] = 0;
-        System.out.println("Robot eliminado de la casilla " + location);
-        lastOperationOK = true;
-    }
-
-
-
+    /**
+     * Reabastece todas las tiendas existentes a 10 tenges (si tienen menos).
+     */
     public void resupplyStores() {        
         // Reabastece todas las tiendas a 10 tenges (o el valor que desees)        
         for (int i = 0; i < stores.length; i++) {            
@@ -365,7 +353,9 @@ public class SilkRoad {
         lastOperationOK = true;    
     }
 
-    
+    /**
+     * Devuelve robots a su posición original (si fue registrada).
+     */
     public void returnRobots() {
         for (int i = 0; i < robotRefs.length; i++) {
             Robot r = robotRefs[i];
@@ -400,6 +390,9 @@ public class SilkRoad {
         }
     }
 
+    /**
+     * Hace invisible todos los elementos gráficos (sin limpiar datos).
+     */
     public void makeInvisible() {
         if (!visible) {
             System.out.println("SilkRoad: ya estaba invisible.");
@@ -428,7 +421,9 @@ public class SilkRoad {
         System.out.println("SilkRoad: ahora invisible (estado guardado, lógica activa).");
     }
     
-    
+    /**
+     * Restituye visibilidad de todos los elementos todavía existentes.
+     */
     public void makeVisible() {
         if (visible) {
             System.out.println("SilkRoad: ya estaba visible, no se hace nada.");
@@ -464,8 +459,13 @@ public class SilkRoad {
         System.out.println("SilkRoad: ahora visible (manteniendo posiciones actuales).");
     }
 
-
-
+    /**
+     * Reinicia el estado:
+     * <ul>
+     *   <li>En dayMode: aplica siguiente evento del schedule sin limpiar.</li>
+     *   <li>Modo normal: limpia robots, tiendas y reinicia profit.</li>
+     * </ul>
+     */
     public void reboot() {
         // MODO DÍAS: si hay schedule activo, reboot avanza el día y NO borra nada
         if (dayMode && daysSchedule != null) {
@@ -520,21 +520,32 @@ public class SilkRoad {
         lastOperationOK = true;
     }
 
-
+    /**
+     * @return profit acumulado total.
+     */
     public int profit() {        
         return profit;    
     }
 
+    /**
+     * @return matriz de tiendas (puede contener filas vacías con ceros).
+     */
     public int[][] stores() {
         return stores;
     }
 
+    /**
+     * @return matriz de robots (puede contener filas vacías con ceros).
+     */
     public int[][] robots() {
         return robots;
     }
 
-
-     public void finish() {        
+    /**
+     * Limpia completamente referencias, resetea profit y acumulados y oculta la vista.
+     * No desactiva dayMode.
+     */
+    public void finish() {        
          makeInvisible();        
          Arrays.fill(storeRefs, null);        
          Arrays.fill(robotRefs, null);        
@@ -555,10 +566,17 @@ public class SilkRoad {
         lastOperationOK = true;    
     }
 
+    /**
+     * @return true si la última operación registrada fue válida.
+     */
     public boolean ok() {
         return lastOperationOK;
     }
     
+    /**
+     * Activa un schedule (uso interno).
+     * @param days matriz de eventos
+     */
     private void setDaysSchedule(int[][] days) {
         this.daysSchedule = days;
         this.dayIndexSchedule = -1;
@@ -566,13 +584,19 @@ public class SilkRoad {
         System.out.println("Schedule cargado: " + (days == null ? 0 : days.length) + " días. Usa reboot() para pasar el día.");
     }
 
-    // Si quieres volver al comportamiento original de reboot (borrar todo)
+    /**
+     * Desactiva el modo día y restaura comportamiento de limpieza en reboot().
+     */
     private void disableDayMode() {
         this.dayMode = false;
         System.out.println("Modo días desactivado: reboot() vuelve a reiniciar todo.");
     }
 
-    // Helper estático para dimensionar al usar el constructor con days
+    /**
+     * Encuentra la mayor ubicación presente en la matriz de eventos para dimensionar la SilkRoad.
+     * @param days schedule de días (puede ser null)
+     * @return mayor índice de ubicación encontrado o 0
+     */
     private static int maxLocationFromDays(int[][] days) {
         int mx = 0;
         if (days != null) {
@@ -585,4 +609,82 @@ public class SilkRoad {
         return mx;
     }
 
+    /**
+     * Revisa si algún robot coincide con alguna tienda y transfiere tenges.
+     * Actualiza profit, profitPerLocation y la barra de progreso.
+     */
+    private void transferTengesIfCoincide() {
+        for (int i = 0; i < robots.length; i++) {
+            Robot r = robotRefs[i];
+            if (r == null) continue;
+    
+            Store s = storeRefs[i];
+            if (s != null && stores[i][1] > 0) {
+                int collected = stores[i][1];   // lo que hay en la tienda
+                stores[i][1] = 0;               // vaciar tienda
+                robots[i][1] += collected;      // asignar al robot
+                profit += collected;            // ganancia global
+    
+                // 👉 acumular en profitPerLocation (suma al acumulado anterior)
+                profitPerLocation[i][1] += collected;
+    
+                System.out.println(
+                    "Robot en celda " + i +
+                    " recogió " + collected +
+                    " → acumulado ahora: " + profitPerLocation[i][1]
+                );
+    
+                updateProgressBar();
+            }
+        }
+    }
+
+    /**
+     * Elimina una tienda en la ubicación dada (si existe).
+     * @param location índice de la celda
+     */
+    public void removeStore(int location) {
+        if (location < 0 || location >= stores.length) {
+            System.out.println("Índice de tienda inválido: " + location);
+            return;
+        }
+        if (storeRefs != null && storeRefs[location] != null) {
+            storeRefs[location].makeInvisible();
+            storeRefs[location] = null;
+        }
+        maxProfit -= stores[location][1]; 
+        stores[location][0] = 0;
+        stores[location][1] = 0;
+        updateProgressBar(); 
+        System.out.println("Tienda eliminada de la casilla " + location);
+        lastOperationOK = true;
+    }
+
+    /**
+     * Elimina un robot en la ubicación dada (si existe).
+     * @param location índice de la celda
+     */
+    public void removeRobot(int location) {
+        if (location < 0 || location >= robotRefs.length) {
+            System.out.println("Índice de robot inválido: " + location);
+            return;
+        }
+        if (robotRefs[location] != null) {
+            robotRefs[location].makeInvisible();
+            robotRefs[location] = null;
+        }
+        robots[location][0] = 0;
+        robots[location][1] = 0;
+        System.out.println("Robot eliminado de la casilla " + location);
+        lastOperationOK = true;
+    }
+
+    /**
+     * Actualiza gráficamente la barra de progreso según profit y maxProfit.
+     */
+    private void updateProgressBar() {
+        if (progressBar != null) {
+            progressBar.setProgress(profit, Math.max(1, maxProfit)); // evita división por cero
+        }
+    }
 }
