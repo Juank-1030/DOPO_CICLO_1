@@ -55,6 +55,13 @@ public class Store {
         // Seleccionar un color aleatorio de la lista
         return colors[rand.nextInt(colors.length)];
     }
+    
+    public void changeColor(String newColor) {
+        this.color = newColor;
+        base.changeColor(newColor);
+        // el techo no cambia, solo la base
+    }
+
 
     public void moveTo(int x, int y) {
         positionX = x;  // Actualizamos la posición X
