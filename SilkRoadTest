@@ -1,20 +1,49 @@
 import static org.junit.Assert.*;
 import org.junit.Test;
 
+/**
+ * Pruebas unitarias (JUnit 4) para la clase SilkRoad.
+ *
+ * Objetivo: verificar el comportamiento público sin modificar la lógica interna.
+ * - Se cubren constructores, colocación y eliminación de robots y tiendas.
+ * - Transferencia de tenges (profit).
+ * - Movimiento individual y automático (moveRobots).
+ * - Reabastecimiento, vaciado de tiendas, retorno de robots.
+ * - Modo día (schedule) vs modo normal en reboot().
+ * - finish() y bandera ok().
+ *
+ * NOTA: Este archivo añade SOLO documentación y comentarios. No se cambia nada del código existente.
+ */
 public class SilkRoadTest {
 
     // ---------- Helpers ----------
+    /**
+     * Cuenta robots "activos" en la matriz robots.
+     * Se consideran filas con algún dato distinto de cero.
+     * IMPORTANTE: La lógica original mezcla condiciones con '||' y '&&' sin paréntesis.
+     * No se modifica para respetar tu pedido de no cambiar código.
+     *
+     * @param robots matriz devuelta por SilkRoad.robots()
+     * @return número estimado de robots (heurístico simple)
+     */
     private int countRobots(int[][] robots) {
         int c = 0;
         for (int[] r : robots) {
+            // La expresión original puede producir conteos no triviales por su precedencia.
+            // Se conserva tal cual.
             if (r != null && r.length >= 2 && r[0] != 0 || (r[0]==0 && r[1]>0)) {
-                // Más robusto: revisamos si hay trazas de robot (location>0 o tenges>0)
+                // Revisión adicional: si alguno de los dos valores es != 0
                 if (r[0] != 0 || r[1] != 0) c++;
             }
         }
         return c;
     }
 
+    /**
+     * Cuenta tiendas activas (filas con algún valor distinto de cero).
+     * @param stores matriz stores() de SilkRoad
+     * @return cantidad aproximada de tiendas colocadas
+     */
     private int countStores(int[][] stores) {
         int c = 0;
         for (int[] s : stores) {
@@ -25,6 +54,13 @@ public class SilkRoadTest {
         return c;
     }
 
+    /**
+     * Verifica si existe una tienda exactamente en la ubicación y con el valor esperado.
+     * @param stores matriz de tiendas
+     * @param loc ubicación a revisar
+     * @param tenges valor esperado
+     * @return true si coincide
+     */
     private boolean hasStoreAt(int[][] stores, int loc, int tenges) {
         if (loc >= 0 && loc < stores.length) {
             return stores[loc][0] == loc && stores[loc][1] == tenges;
@@ -32,6 +68,12 @@ public class SilkRoadTest {
         return false;
     }
 
+    /**
+     * Verifica si hay un robot en una ubicación (usando la convención robots[loc][0]==loc).
+     * @param robots matriz de robots
+     * @param loc ubicación
+     * @return true si se considera que hay robot
+     */
     private boolean hasRobotAt(int[][] robots, int loc) {
         if (loc >= 0 && loc < robots.length) {
             return robots[loc][0] == loc;
@@ -41,6 +83,9 @@ public class SilkRoadTest {
 
     // ---------- Tests ----------
 
+    /**
+     * Verifica estado inicial con constructor por longitud.
+     */
     @Test
     public void testConstructorLength() {
         SilkRoad sr = new SilkRoad(20);
@@ -51,6 +96,9 @@ public class SilkRoadTest {
         assertEquals(0, countStores(sr.stores()));
     }
 
+    /**
+     * Verifica que el constructor con days no coloca nada hasta usar reboot().
+     */
     @Test
     public void testConstructorDays_NoInitialPlacement() {
         int[][] days = { {1,5}, {2,10,30} };
@@ -64,6 +112,9 @@ public class SilkRoadTest {
         assertTrue(hasStoreAt(sr.stores(), 10, 30));
     }
 
+    /**
+     * Colocar tienda y luego robot en la misma celda debe transferir los tenges.
+     */
     @Test
     public void testPlaceStoreThenRobot_ImmediateTransfer() {
         SilkRoad sr = new SilkRoad(30);
@@ -75,6 +126,9 @@ public class SilkRoadTest {
         assertEquals(40, sr.profit());       // profit incrementado
     }
 
+    /**
+     * Colocar robot y luego tienda en misma celda también transfiere inmediatamente.
+     */
     @Test
     public void testPlaceRobotThenStore_ImmediateTransfer() {
         SilkRoad sr = new SilkRoad(30);
@@ -85,6 +139,9 @@ public class SilkRoadTest {
         assertEquals(25, sr.profit());
     }
 
+    /**
+     * Eliminación de tienda y robot debe limpiar sus registros.
+     */
     @Test
     public void testRemoveStoreAndRobot() {
         SilkRoad sr = new SilkRoad(30);
@@ -98,6 +155,9 @@ public class SilkRoadTest {
         assertEquals(0, sr.robots()[5][1]);
     }
 
+    /**
+     * Verifica movimiento básico de robot entre celdas usando moveRobot().
+     */
     @Test
     public void testMoveRobot() {
         SilkRoad sr = new SilkRoad(30);
@@ -107,6 +167,9 @@ public class SilkRoadTest {
         assertTrue(hasRobotAt(sr.robots(), 8));
     }
 
+    /**
+     * Verifica estrategia de moveRobots() eligiendo la tienda más cercana.
+     */
     @Test
     public void testMoveRobotsChoosesClosestPair() {
         SilkRoad sr = new SilkRoad(50);
@@ -117,10 +180,12 @@ public class SilkRoadTest {
         sr.moveRobots();        // Debe mover robot de 2 a 5
         assertTrue(hasRobotAt(sr.robots(), 5));
         assertEquals(0, sr.stores()[5][1]);  // vacía
-        // Profit = 10 (solo la tienda cercana)
-        assertEquals(10, sr.profit());
+        assertEquals(10, sr.profit());       // Solo recogió la de 10
     }
 
+    /**
+     * Verifica reabastecimiento de tiendas existentes a valor 10.
+     */
     @Test
     public void testResupplyStores() {
         SilkRoad sr = new SilkRoad(20);
@@ -131,17 +196,22 @@ public class SilkRoadTest {
         assertEquals(10, sr.stores()[6][1]);
     }
 
+    /**
+     * Verifica retorno de robots a su posición original tras haber sido movidos.
+     */
     @Test
     public void testReturnRobots() {
         SilkRoad sr = new SilkRoad(30);
         sr.placeRobot(4);
         sr.moveRobot(4, 6); // al 10
         sr.returnRobots();
-        // Robot debe regresar a 4
         assertTrue(hasRobotAt(sr.robots(), 4));
         assertFalse(hasRobotAt(sr.robots(), 10));
     }
 
+    /**
+     * Verifica listado de tiendas vacías devuelto por emptiedStores().
+     */
     @Test
     public void testEmptiedStores() {
         SilkRoad sr = new SilkRoad(30);
@@ -150,7 +220,6 @@ public class SilkRoadTest {
         sr.placeStore(15, 5);
         sr.placeRobot(15); // vacía
         int[][] emptied = sr.emptiedStores();
-        // Debe contener (9,0) y (15,0)
         boolean nine = false, fifteen = false;
         for (int[] row : emptied) {
             if (row[0] == 9 && row[1] == 0) nine = true;
@@ -159,6 +228,9 @@ public class SilkRoadTest {
         assertTrue(nine && fifteen);
     }
 
+    /**
+     * Verifica avance de días en modo dayMode sin limpiar estado previo.
+     */
     @Test
     public void testRebootDayMode() {
         int[][] days = { {1,3}, {2,10,50}, {1,5} };
@@ -169,12 +241,14 @@ public class SilkRoadTest {
         assertTrue(hasStoreAt(sr.stores(), 10, 50));
         sr.reboot(); // día 3 robot 5
         assertTrue(hasRobotAt(sr.robots(), 5));
-        sr.reboot(); // ya no hay más días
-        // No debería lanzar error ni cambiar lo anterior
+        sr.reboot(); // ya no hay más días (no debe alterar lo existente)
         assertTrue(hasRobotAt(sr.robots(), 3));
         assertTrue(hasRobotAt(sr.robots(), 5));
     }
 
+    /**
+     * Verifica el comportamiento de reboot() en modo normal (borrado completo).
+     */
     @Test
     public void testRebootNormalMode() {
         SilkRoad sr = new SilkRoad(20);
@@ -187,6 +261,9 @@ public class SilkRoadTest {
         assertEquals(0, countStores(sr.stores()));
     }
 
+    /**
+     * Verifica finish(): limpieza total de estado y profit.
+     */
     @Test
     public void testFinish() {
         SilkRoad sr = new SilkRoad(25);
@@ -194,23 +271,27 @@ public class SilkRoadTest {
         sr.placeRobot(2);
         sr.placeStore(10, 7);
         sr.finish();
-        // Todo a cero
         assertEquals(0, sr.profit());
         assertEquals(0, countStores(sr.stores()));
         assertEquals(0, countRobots(sr.robots()));
     }
 
+    /**
+     * Operaciones inválidas (índices fuera de rango) no deben romper el estado básico.
+     */
     @Test
     public void testInvalidOperationsDoNotThrow() {
         SilkRoad sr = new SilkRoad(10);
         sr.placeRobot(50); // fuera de rango
         sr.placeStore(-3, 5); // fuera de rango
-        // Estado aún consistente
         assertEquals(0, sr.profit());
         assertEquals(0, countStores(sr.stores()));
         assertEquals(0, countRobots(sr.robots()));
     }
 
+    /**
+     * Verifica que ok() permanezca true después de operaciones válidas encadenadas.
+     */
     @Test
     public void testOkFlagAfterValidOps() {
         SilkRoad sr = new SilkRoad(15);
